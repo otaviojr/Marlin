@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -51,6 +51,10 @@ GcodeSuite gcode;
 
 #if ENABLED(CANCEL_OBJECTS)
   #include "../feature/cancel_object.h"
+#endif
+
+#if ENABLED(LASER_MOVE_POWER)
+  #include "../feature/spindle_laser.h"
 #endif
 
 #include "../MarlinCore.h" // for idle() and suspend_auto_report
@@ -167,6 +171,23 @@ void GcodeSuite::get_destination_from_command() {
   // Get ABCDHI mixing factors
   #if BOTH(MIXING_EXTRUDER, DIRECT_MIXING_IN_G1)
     M165();
+  #endif
+
+  #if ENABLED(LASER_MOVE_POWER)
+    // Set the laser power in the planner to configure this move
+    if (parser.seen('S')) {
+      cutter.inline_power(
+        #if ENABLED(CUTTER_POWER_PROPORTIONAL)
+          parser.value_float()
+        #else
+          parser.value_int()
+        #endif
+      );
+    }
+    #if ENABLED(LASER_MOVE_G0_OFF)
+      else if (parser.codenum == 0)     // G0
+        cutter.inline_enabled(false);
+    #endif
   #endif
 }
 

@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -27,6 +27,22 @@
 #include "../gcode.h"
 #include "../../feature/spindle_laser.h"
 #include "../../module/stepper.h"
+
+#if ENABLED(LASER_POWER_INLINE_INVERT)
+  #define INLINE_I_STATE false
+#else
+  #define INLINE_I_STATE true
+#endif
+
+inline cutter_power_t get_s_power() {
+  return cutter_power_t(
+    #if ENABLED(CUTTER_POWER_PROPORTIONAL)
+      parser.floatval('S', SPEED_POWER_STARTUP)
+    #else
+      parser.intval('S', SPEED_POWER_STARTUP)
+    #endif
+  );
+}
 
 /**
  * Laser:
@@ -71,9 +87,26 @@
  */
 void GcodeSuite::M3_M4(const bool is_M4) {
 
-  #if ENABLED(SPINDLE_FEATURE)
-    planner.synchronize();   // Wait for movement to complete before changing power
+  #if ENABLED(LASER_POWER_INLINE)
+    if (parser.seen('I') == INLINE_I_STATE) {
+      // Laser power in inline mode
+      cutter.inline_direction(is_M4); // Should always be unused
+
+      #if ENABLED(SPINDLE_LASER_PWM)
+        if (parser.seen('O'))
+          cutter.inline_ocr_power(parser.value_byte()); // The OCR is a value from 0 to 255 (uint8_t)
+        else
+          cutter.inline_power(get_s_power());
+      #else
+        cutter.inline_enabled(true);
+      #endif
+      return;
+    }
+    // Non-inline, standard case
+    cutter.inline_disable(); // Prevent future blocks re-setting the power
   #endif
+
+  planner.synchronize();   // Wait for previous movement commands (G0/G0/G2/G3) to complete before changing power
 
   cutter.set_direction(is_M4);
 
@@ -81,19 +114,25 @@ void GcodeSuite::M3_M4(const bool is_M4) {
     if (parser.seenval('O'))
       cutter.set_ocr_power(parser.value_byte()); // The OCR is a value from 0 to 255 (uint8_t)
     else
-      cutter.set_power(parser.intval('S', 255));
+      cutter.set_power(get_s_power());
   #else
     cutter.set_enabled(true);
   #endif
 }
 
 /**
- * M5 - Cutter OFF
+ * M5 - Cutter OFF (when moves are complete)
  */
 void GcodeSuite::M5() {
-  #if ENABLED(SPINDLE_FEATURE)
-    planner.synchronize();
+  #if ENABLED(LASER_POWER_INLINE)
+    if (parser.seen('I') == INLINE_I_STATE) {
+      cutter.inline_enabled(false); // Laser power in inline mode
+      return;
+    }
+    // Non-inline, standard case
+    cutter.inline_disable(); // Prevent future blocks re-setting the power
   #endif
+  planner.synchronize();
   cutter.set_enabled(false);
 }
 

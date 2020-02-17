@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -181,12 +181,18 @@
   #include "libs/L64XX/L64XX_Marlin.h"
 #endif
 
+#if HAS_CUTTER
+  #include "feature/spindle_laser.h"
+#endif
+
 const char NUL_STR[] PROGMEM = "",
            M112_KILL_STR[] PROGMEM = "M112 Shutdown",
            G28_STR[] PROGMEM = "G28",
            M21_STR[] PROGMEM = "M21",
            M23_STR[] PROGMEM = "M23 %s",
            M24_STR[] PROGMEM = "M24",
+           SP_P_STR[] PROGMEM = " P",
+           SP_T_STR[] PROGMEM = " T",
            SP_X_STR[] PROGMEM = " X",
            SP_Y_STR[] PROGMEM = " Y",
            SP_Z_STR[] PROGMEM = " Z",
@@ -404,7 +410,14 @@ void startOrResumeJob() {
     #if DISABLED(SD_ABORT_NO_COOLDOWN)
       thermalManager.disable_all_heaters();
     #endif
-    thermalManager.zero_fan_speeds();
+    #if !HAS_CUTTER
+      thermalManager.zero_fan_speeds();
+    #else
+      #if ENABLED(LASER_POWER_INLINE)
+        cutter.inline_disable();  // Disable all stepper ISR control of cutter to prevent bad things
+      #endif
+      cutter.disable();           // Shut down spindle/laser
+    #endif
     wait_for_heatup = false;
     #if ENABLED(POWER_LOSS_RECOVERY)
       recovery.purge();
@@ -547,6 +560,9 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
             case 2: case 3: oldstatus = E1_ENABLE_READ(); ENABLE_AXIS_E1(); break;
             #if E_STEPPERS > 2
               case 4: case 5: oldstatus = E2_ENABLE_READ(); ENABLE_AXIS_E2(); break;
+              #if E_STEPPERS > 3
+                case 6: case 7: oldstatus = E3_ENABLE_READ(); ENABLE_AXIS_E3(); break;
+              #endif // E_STEPPERS > 3
             #endif // E_STEPPERS > 2
           #endif // E_STEPPERS > 1
         }
@@ -722,6 +738,13 @@ void idle(
 void kill(PGM_P const lcd_error/*=nullptr*/, PGM_P const lcd_component/*=nullptr*/, const bool steppers_off/*=false*/) {
   thermalManager.disable_all_heaters();
 
+  #if HAS_CUTTER
+    #if ENABLED(LASER_POWER_INLINE)
+      cutter.inline_disable(); // Disable all stepper isr control of cutter incase bad things
+    #endif
+    cutter.disable(); // Shutdown spindle/laser
+  #endif
+
   SERIAL_ERROR_MSG(MSG_ERR_KILLED);
 
   #if HAS_DISPLAY
@@ -750,6 +773,13 @@ void minkill(const bool steppers_off/*=false*/) {
 
   // Reiterate heaters off
   thermalManager.disable_all_heaters();
+
+  #if HAS_CUTTER
+    #if ENABLED(LASER_POWER_INLINE)
+      cutter.inline_disable();
+    #endif
+    cutter.disable(); // Reiterate spindle/laser shutdown
+  #endif
 
   // Power off all steppers (for M112) or just the E steppers
   steppers_off ? disable_all_steppers() : disable_e_steppers();
@@ -977,7 +1007,7 @@ void setup() {
   #endif
 
   #if HAS_Z_SERVO_PROBE
-    servo_probe_init();
+    probe.servo_probe_init();
   #endif
 
   #if HAS_PHOTOGRAPH
