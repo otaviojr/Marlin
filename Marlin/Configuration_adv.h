@@ -2639,11 +2639,11 @@
  * See http://marlinfw.org/docs/configuration/laser_spindle.html for more config details.
  */
 //#define SPINDLE_FEATURE
-//#define LASER_FEATURE
+#define LASER_FEATURE
 #if EITHER(SPINDLE_FEATURE, LASER_FEATURE)
   #define SPINDLE_LASER_ACTIVE_HIGH     false   // Set "true" if the on/off function is active HIGH
   #define SPINDLE_LASER_PWM             true    // Set "true" if your controller supports setting the speed/power
-  #define SPINDLE_LASER_PWM_INVERT      true    // Set "true" if the speed/power goes up when you want it to go slower
+  #define SPINDLE_LASER_PWM_INVERT      false    // Set "true" if the speed/power goes up when you want it to go slower
 
   //#define SPINDLE_LASER_FREQUENCY 20000       // (Hz) Spindle/laser frequency (only on supported HALs: AVR and LPC)
   //#define CUTTER_POWER_PROPORTIONAL           // Set speed/power (I or S) as a proportion of 1.0 (e.g., 0.15 = 15%)

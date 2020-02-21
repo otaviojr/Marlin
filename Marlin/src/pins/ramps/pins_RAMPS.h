@@ -260,7 +260,7 @@
 
 #if ENABLED(CASE_LIGHT_ENABLE) && !defined(CASE_LIGHT_PIN) && !defined(SPINDLE_LASER_ENA_PIN)
   #if NUM_SERVOS <= 1 // Prefer the servo connector
-    #define CASE_LIGHT_PIN  6   // Hardware PWM
+    #define CASE_LIGHT_PIN  15   // Hardware PWM
   #elif HAS_FREE_AUX2_PINS
     #define CASE_LIGHT_PIN 44   // Hardware PWM
   #endif
