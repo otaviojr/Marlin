@@ -1783,7 +1783,7 @@ uint32_t Stepper::block_phase_isr() {
               LA_isr_rate = current_block->advance_speed;
             }
           }
-          else if (LA_steps) nextAdvanceISR = 0;
+          else if (LA_steps) initiateLA();
         #endif // LIN_ADVANCE
 
         // Update laser - Decelerating
