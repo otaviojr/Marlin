@@ -2641,7 +2641,7 @@
  * See http://marlinfw.org/docs/configuration/laser_spindle.html for more config details.
  */
 //#define SPINDLE_FEATURE
-#define LASER_FEATURE
+//#define LASER_FEATURE
 #if EITHER(SPINDLE_FEATURE, LASER_FEATURE)
   #define SPINDLE_LASER_ACTIVE_HIGH     false   // Set "true" if the on/off function is active HIGH
   #define SPINDLE_LASER_PWM             true    // Set "true" if your controller supports setting the speed/power
@@ -2808,7 +2808,7 @@
  * Enables G53 and G54-G59.3 commands to select coordinate systems
  * and G92.1 to reset the workspace to native machine space.
  */
-#define CNC_COORDINATE_SYSTEMS
+//#define CNC_COORDINATE_SYSTEMS
 
 /**
  * Auto-report temperatures with M155 S<seconds>
