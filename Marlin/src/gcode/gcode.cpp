@@ -247,8 +247,14 @@ void GcodeSuite::dwell(millis_t time) {
 void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
   KEEPALIVE_STATE(IN_HANDLER);
 
-  // Handle a known G, M, or T
+  // Handle a known D (Custom Delta3D config gcode), G, M, or T
   switch (parser.command_letter) {
+    case 'D': switch (parser.codenum) {
+      case 1: D1(parser.subcode); break;                          // D1.0: Report mode, D1.1: Set CNC, D1.2: Set Laser, D1.3: Set 3D Printer
+      default: parser.unknown_command_warning(); break;
+    }
+    break;
+
     case 'G': switch (parser.codenum) {
 
       case 0: case 1: G0_G1(                                      // G0: Fast Move, G1: Linear Move

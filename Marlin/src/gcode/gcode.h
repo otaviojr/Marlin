@@ -390,6 +390,10 @@ public:
 
 private:
 
+  /*Custom Delta3D gcodes */
+  static void D1(const int8_t subcode);
+  /*End of Customs Delta3D gcodes*/
+
   static void G0_G1(
     #if IS_SCARA || defined(G0_FEEDRATE)
       const bool fast_move=false

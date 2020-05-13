@@ -399,3 +399,7 @@
          DISPLAY_CHARSET_ISO10646_SK)
   #define DISPLAY_CHARSET_ISO10646_1 // use the better font on full graphic displays.
 #endif
+
+/* Delta3D Language Extensions */
+#define STR_DELTA3D_MODE "Machine Mode: "
+/* End of Delta3D Language Extensions */ 
