@@ -403,6 +403,8 @@ private:
   static void D1(const int8_t subcode);
   static void D2();
   static void D3();
+  static void D4();
+  static void D5();
   /*End of Customs Delta3D gcodes*/
 
   static void G0_G1(

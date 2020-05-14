@@ -580,9 +580,6 @@ void MarlinSettings::postprocess() {
       #endif
     }
 
-    DEBUG_ECHO_START();
-    DEBUG_ECHOLNPAIR("Index: ", int(eeprom_index - (EEPROM_OFFSET)));
-
     //
     // Home Offset
     //
@@ -1475,9 +1472,6 @@ void MarlinSettings::postprocess() {
           EEPROM_READ(dummy);
         #endif
       }
-      
-      DEBUG_ECHO_START();
-      DEBUG_ECHOLNPAIR("Index: ", int(eeprom_index - (EEPROM_OFFSET)));
       
       //
       // Home Offset (M206 / M665)
