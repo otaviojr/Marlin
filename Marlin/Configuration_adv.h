@@ -2640,9 +2640,10 @@
  *
  * See http://marlinfw.org/docs/configuration/laser_spindle.html for more config details.
  */
-//#define SPINDLE_FEATURE
+#define SPINDLE_FEATURE
 #define LASER_FEATURE
 #if EITHER(SPINDLE_FEATURE, LASER_FEATURE)
+
   #define SPINDLE_LASER_ACTIVE_HIGH     false   // Set "true" if the on/off function is active HIGH
   #define SPINDLE_LASER_PWM             true    // Set "true" if your controller supports setting the speed/power
   #define SPINDLE_LASER_PWM_INVERT      false    // Set "true" if the speed/power goes up when you want it to go slower
@@ -2655,8 +2656,8 @@
     #define SPINDLE_CHANGE_DIR_STOP             // Enable if the spindle should stop before changing spin direction
     #define SPINDLE_INVERT_DIR          false   // Set "true" if the spin direction is reversed
 
-    #define SPINDLE_LASER_POWERUP_DELAY   5000  // (ms) Delay to allow the spindle/laser to come up to speed/power
-    #define SPINDLE_LASER_POWERDOWN_DELAY 5000  // (ms) Delay to allow the spindle to stop
+    #define SPINDLE_POWERUP_DELAY   5000  // (ms) Delay to allow the spindle/laser to come up to speed/power
+    #define SPINDLE_POWERDOWN_DELAY 5000  // (ms) Delay to allow the spindle to stop
 
     /**
      * M3/M4 uses the following equation to convert PWM duty cycle to speed/power
@@ -2666,19 +2667,21 @@
      *
      * Set these required parameters for your controller
      */
-    #define SPEED_POWER_SLOPE    118.4
-    #define SPEED_POWER_INTERCEPT  0
-    #define SPEED_POWER_MIN     5000
-    #define SPEED_POWER_MAX    30000    // SuperPID router controller 0 - 30,000 RPM
-    #define SPEED_POWER_STARTUP  SPEED_POWER_MAX // The default value for speed power when M3 is called without arguments
+    #define SPINDLE_SPEED_POWER_SLOPE    118.4
+    #define SPINDLE_SPEED_POWER_INTERCEPT  0
+    #define SPINDLE_SPEED_POWER_MIN     5000
+    #define SPINDLE_SPEED_POWER_MAX    30000    // SuperPID router controller 0 - 30,000 RPM
+    #define SPINDLE_SPEED_POWER_STARTUP  SPINDLE_SPEED_POWER_MIN // The default value for speed power when M3 is called without arguments
 
-  #else
+  #endif
 
-    #define SPEED_POWER_SLOPE      0.3922
-    #define SPEED_POWER_INTERCEPT  0
-    #define SPEED_POWER_MIN       10
-    #define SPEED_POWER_MAX      100    // 0-100%
-    #define SPEED_POWER_STARTUP  SPEED_POWER_MAX // The default value for speed power when M3 is called without arguments
+  #if ENABLED(LASER_FEATURE)
+
+    #define LASER_SPEED_POWER_SLOPE      0.3922
+    #define LASER_SPEED_POWER_INTERCEPT  0
+    #define LASER_SPEED_POWER_MIN       10
+    #define LASER_SPEED_POWER_MAX      100    // 0-100%
+    #define LASER_SPEED_POWER_STARTUP  SPINDLE_SPEED_POWER_MIN // The default value for speed power when M3 is called without arguments
 
     /**
      * Enable inline laser power to be handled in the planner / stepper routines.
@@ -2747,8 +2750,8 @@
 
     #else
 
-      #define SPINDLE_LASER_POWERUP_DELAY   50   // (ms) Delay to allow the spindle/laser to come up to speed/power
-      #define SPINDLE_LASER_POWERDOWN_DELAY 50   // (ms) Delay to allow the spindle to stop
+      #define LASER_POWERUP_DELAY   50   // (ms) Delay to allow the spindle/laser to come up to speed/power
+      #define LASER_POWERDOWN_DELAY 50   // (ms) Delay to allow the spindle to stop
 
     #endif
   #endif

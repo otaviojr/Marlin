@@ -56,6 +56,8 @@
 #include "../gcode/gcode.h"
 #include "../MarlinCore.h"
 
+#include "../feature/delta/machine_mode.h"
+
 #if EITHER(EEPROM_SETTINGS, SD_FIRMWARE_UPDATE)
   #include "../HAL/shared/persistent_store_api.h"
 #endif
@@ -361,6 +363,12 @@ typedef struct SettingsDataStruct {
   uint8_t backlash_correction;                          // M425 F
   float backlash_smoothing_mm;                          // M425 S
 
+  //Delta3D Custom Settings
+  uint16_t max_spindle_power;
+  uint16_t min_spindle_power;
+  uint16_t max_laser_power;
+  uint16_t min_laser_power;
+
   //
   // EXTENSIBLE_UI
   //
@@ -546,7 +554,7 @@ void MarlinSettings::postprocess() {
 
     const uint8_t esteppers = COUNT(planner.settings.axis_steps_per_mm) - XYZ;
     EEPROM_WRITE(esteppers);
-
+    
     //
     // Planner Motion
     //
@@ -571,6 +579,9 @@ void MarlinSettings::postprocess() {
         EEPROM_WRITE(dummy);
       #endif
     }
+
+    DEBUG_ECHO_START();
+    DEBUG_ECHOLNPAIR("Index: ", int(eeprom_index - (EEPROM_OFFSET)));
 
     //
     // Home Offset
@@ -747,6 +758,8 @@ void MarlinSettings::postprocess() {
     #else
       // No placeholder data for this feature
     #endif
+
+    /* OK */
 
     //
     // BLTOUCH
@@ -1327,6 +1340,14 @@ void MarlinSettings::postprocess() {
       EEPROM_WRITE(backlash_smoothing_mm);
     }
 
+    // Delta3D - Custom Settings
+    _FIELD_TEST(max_spindle_power);
+    EEPROM_WRITE(deltaMachineMode.max_spindle_power);
+    EEPROM_WRITE(deltaMachineMode.min_spindle_power);
+    EEPROM_WRITE(deltaMachineMode.max_laser_power);
+    EEPROM_WRITE(deltaMachineMode.min_laser_power);
+    // Delta3D - EndCustom Settings
+
     //
     // Extensible UI User Data
     //
@@ -1454,7 +1475,10 @@ void MarlinSettings::postprocess() {
           EEPROM_READ(dummy);
         #endif
       }
-
+      
+      DEBUG_ECHO_START();
+      DEBUG_ECHOLNPAIR("Index: ", int(eeprom_index - (EEPROM_OFFSET)));
+      
       //
       // Home Offset (M206 / M665)
       //
@@ -1631,6 +1655,8 @@ void MarlinSettings::postprocess() {
       #else
         // No placeholder data for this feature
       #endif
+
+      /* OK */
 
       //
       // BLTOUCH
@@ -2190,6 +2216,14 @@ void MarlinSettings::postprocess() {
         EEPROM_READ(backlash_correction);
         EEPROM_READ(backlash_smoothing_mm);
       }
+
+      // Delta3D - Custom Settings
+      _FIELD_TEST(max_spindle_power);
+      EEPROM_READ(deltaMachineMode.max_spindle_power);
+      EEPROM_READ(deltaMachineMode.min_spindle_power);
+      EEPROM_READ(deltaMachineMode.max_laser_power);
+      EEPROM_READ(deltaMachineMode.min_laser_power);
+      // Delta3D - EndCustom Settings
 
       //
       // Extensible UI User Data
@@ -2762,6 +2796,11 @@ void MarlinSettings::reset() {
       fc_settings[e].load_length = FILAMENT_CHANGE_FAST_LOAD_LENGTH;
     }
   #endif
+
+  DeltaMachineMode::min_spindle_power = SPINDLE_SPEED_POWER_MIN;
+  DeltaMachineMode::min_laser_power = LASER_SPEED_POWER_MIN;
+  DeltaMachineMode::max_spindle_power = SPINDLE_SPEED_POWER_MAX;
+  DeltaMachineMode::max_laser_power = LASER_SPEED_POWER_MAX;
 
   postprocess();
 

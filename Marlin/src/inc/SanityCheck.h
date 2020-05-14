@@ -2677,9 +2677,9 @@ static_assert(   _ARR_TEST(3,0) && _ARR_TEST(3,1) && _ARR_TEST(3,2)
     #endif
   #endif
   #define _PIN_CONFLICT(P) (PIN_EXISTS(P) && P##_PIN == SPINDLE_LASER_PWM_PIN)
-  #if BOTH(SPINDLE_FEATURE, LASER_FEATURE)
-    #error "Enable only one of SPINDLE_FEATURE or LASER_FEATURE."
-  #elif !PIN_EXISTS(SPINDLE_LASER_ENA)
+  //#if BOTH(SPINDLE_FEATURE, LASER_FEATURE)
+  //  #error "Enable only one of SPINDLE_FEATURE or LASER_FEATURE."
+  #if !PIN_EXISTS(SPINDLE_LASER_ENA)
     #error "(SPINDLE|LASER)_FEATURE requires SPINDLE_LASER_ENA_PIN."
   #elif ENABLED(SPINDLE_CHANGE_DIR) && !PIN_EXISTS(SPINDLE_DIR)
     #error "SPINDLE_DIR_PIN is required for SPINDLE_CHANGE_DIR."
@@ -2691,7 +2691,7 @@ static_assert(   _ARR_TEST(3,0) && _ARR_TEST(3,1) && _ARR_TEST(3,2)
     #endif
     #if !defined(SPINDLE_LASER_PWM_INVERT)
       #error "SPINDLE_LASER_PWM_INVERT is required for (SPINDLE|LASER)_FEATURE."
-    #elif !defined(SPEED_POWER_SLOPE) || !defined(SPEED_POWER_INTERCEPT) || !defined(SPEED_POWER_MIN) || !defined(SPEED_POWER_MAX) || !defined(SPEED_POWER_STARTUP)
+    #elif !defined(LASER_SPEED_POWER_SLOPE) || !defined(LASER_SPEED_POWER_INTERCEPT) || !defined(LASER_SPEED_POWER_MIN) || !defined(LASER_SPEED_POWER_MAX) || !defined(LASER_SPEED_POWER_STARTUP)
       #error "SPINDLE_LASER_PWM equation constant(s) missing."
     #elif _PIN_CONFLICT(X_MIN)
       #error "SPINDLE_LASER_PWM pin conflicts with X_MIN_PIN."

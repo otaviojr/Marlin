@@ -281,6 +281,15 @@
  *
  * T0-T3 - Select an extruder (tool) by index: "T<n> F<units/min>"
  *
+ *
+ * "D" Codes (Custom Delta3D configuration gcodes)
+ *
+ * D1 - Select machine mode
+ * D2 - Set max spindle power
+ * D3 - Set min spindle power
+ * D4 - Set max laser power
+ * D5 - Set min laser power
+ *
  */
 
 #include "../inc/MarlinConfig.h"
@@ -392,6 +401,8 @@ private:
 
   /*Custom Delta3D gcodes */
   static void D1(const int8_t subcode);
+  static void D2();
+  static void D3();
   /*End of Customs Delta3D gcodes*/
 
   static void G0_G1(

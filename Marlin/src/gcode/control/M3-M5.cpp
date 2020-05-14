@@ -25,6 +25,7 @@
 #if HAS_CUTTER
 
 #include "../gcode.h"
+#include "../../feature/delta/machine_mode.h"
 #include "../../feature/spindle_laser.h"
 #include "../../module/stepper.h"
 
@@ -37,9 +38,9 @@
 inline cutter_power_t get_s_power() {
   return cutter_power_t(
     #if ENABLED(CUTTER_POWER_PROPORTIONAL)
-      parser.floatval('S', SPEED_POWER_STARTUP)
+      parser.floatval('S', DeltaMachineMode::get_startup_power())
     #else
-      parser.intval('S', SPEED_POWER_STARTUP)
+      parser.intval('S', DeltaMachineMode::get_startup_power())
     #endif
   );
 }

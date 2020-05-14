@@ -30,6 +30,9 @@
 
 #include "spindle_laser_types.h"
 
+/*Delta3D - Machine Mode*/
+#include "./delta/machine_mode.h"
+
 #if ENABLED(LASER_POWER_INLINE)
   #include "../module/planner.h"
 #endif
@@ -53,7 +56,7 @@ public:
   FORCE_INLINE static void refresh() { apply_power(power); }
   FORCE_INLINE static void set_power(const cutter_power_t pwr) { power = pwr; refresh(); }
 
-  static inline void set_enabled(const bool enable) { set_power(enable ? (power ?: SPEED_POWER_STARTUP) : 0); }
+  static inline void set_enabled(const bool enable) { set_power(enable ? (power ?: DeltaMachineMode::get_startup_power()) : 0); }
 
   #if ENABLED(SPINDLE_LASER_PWM)
     static void set_ocr(const uint8_t ocr);
@@ -63,8 +66,13 @@ public:
 
   // Wait for spindle to spin up or spin down
   static inline void power_delay(const bool on) {
+    if(DeltaMachineMode::mode == DELTA_MACHINE_MODE_CNC){
+      safe_delay(on ? SPINDLE_POWERUP_DELAY : SPINDLE_POWERDOWN_DELAY);
+    } 
     #if DISABLED(LASER_POWER_INLINE)
-      safe_delay(on ? SPINDLE_LASER_POWERUP_DELAY : SPINDLE_LASER_POWERDOWN_DELAY);
+    else if(DeltaMachineMode::mode == DELTA_MACHINE_MODE_LASER) {
+        safe_delay(on ? LASER_POWERUP_DELAY : LASER_POWERDOWN_DELAY);
+    }
     #endif
   }
 
@@ -76,22 +84,22 @@ public:
 
   static inline void disable() { isOn = false; set_enabled(false); }
   #if HAS_LCD_MENU
-    static inline void enable_forward() { isOn = true; menuLaserPower ? power = menuLaserPower : (power = SPEED_POWER_STARTUP, menuLaserPower = SPEED_POWER_STARTUP); set_direction(false); set_enabled(true); }
-    static inline void enable_reverse() { isOn = true; menuLaserPower ? power = menuLaserPower : (power = SPEED_POWER_STARTUP, menuLaserPower = SPEED_POWER_STARTUP); set_direction(true); set_enabled(true); }
+    static inline void enable_forward() { isOn = true; menuLaserPower ? power = menuLaserPower : (power = DeltaMachineMode::get_startup_power(), menuLaserPower = DeltaMachineMode::get_startup_power()); set_direction(false); set_enabled(true); }
+    static inline void enable_reverse() { isOn = true; menuLaserPower ? power = menuLaserPower : (power = DeltaMachineMode::get_startup_power(), menuLaserPower = DeltaMachineMode::get_startup_power()); set_direction(true); set_enabled(true); }
   #endif
   #if ENABLED(LASER_POWER_INLINE)
     // Force disengage planner power control
-    static inline void inline_disable() { planner.settings.laser.status = 0; planner.settings.laser.power = 0; isOn = false;}
+    static inline void inline_disable() { planner.laser.status = 0; planner.laser.power = 0; isOn = false;}
 
     // Inline modes of all other functions; all enable planner inline power control
-    static inline void inline_enabled(const bool enable) { enable ? inline_power(translate_power(SPEED_POWER_STARTUP)) : inline_ocr_power(0); }
+    static inline void inline_enabled(const bool enable) { enable ? inline_power(translate_power(DeltaMachineMode::get_startup_power())) : inline_ocr_power(0); }
 
     static void inline_power(const cutter_power_t pwr) {
       #if ENABLED(SPINDLE_LASER_PWM)
         inline_ocr_power(translate_power(pwr));
       #else
-        planner.settings.laser.status = enabled(pwr) ? 0x03 : 0x01;
-        planner.settings.laser.power = pwr;
+        planner.laser.status = enabled(pwr) ? 0x03 : 0x01;
+        planner.laser.power = pwr;
       #endif
     }
 
@@ -99,8 +107,8 @@ public:
 
     #if ENABLED(SPINDLE_LASER_PWM)
       static inline void inline_ocr_power(const uint8_t pwr) {
-        planner.settings.laser.status = pwr ? 0x03 : 0x01;
-        planner.settings.laser.power = pwr;
+        planner.laser.status = pwr ? 0x03 : 0x01;
+        planner.laser.power = pwr;
       }
     #endif
   #endif

@@ -70,14 +70,14 @@ void SpindleLaser::init() {
   // Translate power from the configured value range to a PWM value
   //
   uint8_t SpindleLaser::translate_power(const cutter_power_t pwr) {
-      constexpr float inv_slope = RECIPROCAL(SPEED_POWER_SLOPE),
-                      min_ocr = (SPEED_POWER_MIN - (SPEED_POWER_INTERCEPT)) * inv_slope,  // Minimum allowed
-                      max_ocr = (SPEED_POWER_MAX - (SPEED_POWER_INTERCEPT)) * inv_slope;  // Maximum allowed
+      float inv_slope = RECIPROCAL(DeltaMachineMode::get_slope_power()),
+                      min_ocr = (DeltaMachineMode::get_min_power() - (DeltaMachineMode::get_intercept_power())) * inv_slope,  // Minimum allowed
+                      max_ocr = (DeltaMachineMode::get_max_power() - (DeltaMachineMode::get_intercept_power())) * inv_slope;  // Maximum allowed
       int16_t ocr_val;
-           if (pwr <= SPEED_POWER_MIN) ocr_val = min_ocr;                                 // Use minimum if set below
-      else if (pwr >= SPEED_POWER_MAX) ocr_val = max_ocr;                                 // Use maximum if set above
-      else ocr_val = (pwr - (SPEED_POWER_INTERCEPT)) * inv_slope;                         // Use calculated OCR value
-      return ocr_val & 0xFF;                                                              // ...limited to Atmel PWM max
+           if (pwr <= DeltaMachineMode::get_min_power()) ocr_val = min_ocr;                                 // Use minimum if set below
+      else if (pwr >= DeltaMachineMode::get_max_power()) ocr_val = max_ocr;                                 // Use maximum if set above
+      else ocr_val = (pwr - (DeltaMachineMode::get_intercept_power())) * inv_slope;                         // Use calculated OCR value
+      return ocr_val & 0xFF;                                                                                // ...limited to Atmel PWM max
   }
 
 #endif

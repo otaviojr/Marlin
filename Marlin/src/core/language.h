@@ -402,4 +402,17 @@
 
 /* Delta3D Language Extensions */
 #define STR_DELTA3D_MODE "Machine Mode: "
+#define STR_DELTA3D_MODE_SET "Machine mode setted to "
+
+#define STR_DELTA3D_SPINDLE_MAX_SET "Spindle max power setted to "
+#define STR_DELTA3D_SPINDLE_MIN_SET "Spindle min power setted to "
+#define STR_DELTA3D_LASER_MAX_SET "Laser max power setted to "
+#define STR_DELTA3D_LASER_MIN_SET "Laser min power setted to "
+
+#define STR_DELTA3D_SPINDLE_MAX_CURRENT "Spindle max power is "
+#define STR_DELTA3D_SPINDLE_MIN_CURRENT "Spindle min power is "
+#define STR_DELTA3D_LASER_MAX_CURRENT "Laser max power is "
+#define STR_DELTA3D_LASER_MIN_CURRENT "Laser min power is "
+
+#define STR_DELTA3D_INVALID_POWER "Invalid power parameter "
 /* End of Delta3D Language Extensions */ 
