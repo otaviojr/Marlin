@@ -251,10 +251,12 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
   switch (parser.command_letter) {
     case 'D': switch (parser.codenum) {
       case 1: D1(parser.subcode); break;                          // D1.0: Report mode, D1.1: Set CNC, D1.2: Set Laser, D1.3: Set 3D Printer
-      case 2: D2(); break;
-      case 3: D3(); break;
-      case 4: D4(); break;
-      case 5: D5(); break;
+      case 10: D10(); break;
+      case 11: D11(); break;
+      case 12: D12(parser.subcode); break;
+      case 20: D20(); break;
+      case 21: D21(); break;
+      case 22: D22(parser.subcode); break;
       default: parser.unknown_command_warning(); break;
     }
     break;

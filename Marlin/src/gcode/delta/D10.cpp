@@ -5,9 +5,9 @@
 #include "../../feature/delta/machine_mode.h"
 
 /**
- * D2: Set Max Spindle RPM
+ * D10: Set Max Spindle RPM
  */
-void GcodeSuite::D2() 
+void GcodeSuite::D10() 
 {
   if(parser.seen('P') && parser.seenval('P')){
     uint16_t power = parser.value_long();

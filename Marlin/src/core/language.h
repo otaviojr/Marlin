@@ -415,4 +415,7 @@
 #define STR_DELTA3D_LASER_MIN_CURRENT "Laser min power is "
 
 #define STR_DELTA3D_INVALID_POWER "Invalid power parameter "
+
+#define STR_DELTA3D_SPINDLE_ACTIVE_HIGH_SET "Spindle active high is "
+#define STR_DELTA3D_LASER_ACTIVE_HIGH_SET "Laser active high is "
 /* End of Delta3D Language Extensions */ 

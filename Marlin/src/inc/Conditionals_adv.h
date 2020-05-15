@@ -63,7 +63,7 @@
 
 #define HAS_CUTTER EITHER(SPINDLE_FEATURE, LASER_FEATURE)
 
-#define NEEDS_PWM ANY(FAST_PWM_FAN, SPINDLE_LASER_PWM) // Add PWM mandating features here
+#define NEEDS_PWM ANY(FAST_PWM_FAN, LASER_PWM, SPINDLE_PWM) // Add PWM mandating features here
 
 #if !defined(__AVR__) || !defined(USBCON)
   // Define constants and variables for buffering serial data.

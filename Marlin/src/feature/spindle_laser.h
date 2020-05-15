@@ -58,7 +58,7 @@ public:
 
   static inline void set_enabled(const bool enable) { set_power(enable ? (power ?: DeltaMachineMode::get_startup_power()) : 0); }
 
-  #if ENABLED(SPINDLE_LASER_PWM)
+  #if ENABLED(LASER_PWM) || ENABLED(SPINDLE_PWM)
     static void set_ocr(const uint8_t ocr);
     static inline void set_ocr_power(const uint8_t pwr) { power = pwr; set_ocr(pwr); }
     static uint8_t translate_power(const cutter_power_t pwr); // Used by update output for power->OCR translation
@@ -95,7 +95,7 @@ public:
     static inline void inline_enabled(const bool enable) { enable ? inline_power(translate_power(DeltaMachineMode::get_startup_power())) : inline_ocr_power(0); }
 
     static void inline_power(const cutter_power_t pwr) {
-      #if ENABLED(SPINDLE_LASER_PWM)
+      #if ENABLED(LASER_PWM)
         inline_ocr_power(translate_power(pwr));
       #else
         planner.laser.status = enabled(pwr) ? 0x03 : 0x01;
@@ -105,7 +105,7 @@ public:
 
     static inline void inline_direction(const bool reverse) { UNUSED(reverse); } // TODO is this ever going to be needed
 
-    #if ENABLED(SPINDLE_LASER_PWM)
+    #if ENABLED(LASER_PWM)
       static inline void inline_ocr_power(const uint8_t pwr) {
         planner.laser.status = pwr ? 0x03 : 0x01;
         planner.laser.power = pwr;

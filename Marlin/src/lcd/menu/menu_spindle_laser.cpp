@@ -36,7 +36,7 @@
 
     START_MENU();
     BACK_ITEM(MSG_MAIN);
-    #if ENABLED(SPINDLE_LASER_PWM)
+    #if ENABLED(LASER_PWM) || ENABLED(SPINDLE_PWM)
       EDIT_ITEM(CUTTER_MENU_TYPE, MSG_CUTTER(POWER), &cutter.menuLaserPower, SPEED_POWER_MIN, SPEED_POWER_MAX);
     #endif
     if (cutter.enabled() && cutter.isOn)

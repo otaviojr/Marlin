@@ -284,11 +284,13 @@
  *
  * "D" Codes (Custom Delta3D configuration gcodes)
  *
- * D1 - Select machine mode
- * D2 - Set max spindle power
- * D3 - Set min spindle power
- * D4 - Set max laser power
- * D5 - Set min laser power
+ * D1  - Select machine mode
+ * D10 - Set max spindle power
+ * D11 - Set min spindle power
+ * D12 - Set spindle active high signal
+ * D20 - Set max laser power
+ * D21 - Set min laser power
+ * D22 - Set spindle active high signal
  *
  */
 
@@ -401,10 +403,12 @@ private:
 
   /*Custom Delta3D gcodes */
   static void D1(const int8_t subcode);
-  static void D2();
-  static void D3();
-  static void D4();
-  static void D5();
+  static void D10();
+  static void D11();
+  static void D12(const int8_t subcode);
+  static void D20();
+  static void D21();
+  static void D22(const int8_t subcode);
   /*End of Customs Delta3D gcodes*/
 
   static void G0_G1(

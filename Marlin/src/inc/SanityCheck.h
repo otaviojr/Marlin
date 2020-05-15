@@ -367,7 +367,7 @@
 #elif defined(SPINDLE_LASER_ENABLE)
   #error "SPINDLE_LASER_ENABLE is now SPINDLE_FEATURE or LASER_FEATURE. Please update your Configuration_adv.h."
 #elif defined(SPINDLE_LASER_ENABLE_PIN)
-  #error "SPINDLE_LASER_ENABLE_PIN is now SPINDLE_LASER_ENA_PIN. Please update your Configuration_adv.h and/or pins."
+  #error "SPINDLE_LASER_ENABLE_PIN is now LASER_ENA_PIN/SPINDLE_ENA_PIN. Please update your Configuration_adv.h and/or pins."
 #elif defined(SPINDLE_DIR_CHANGE)
   #error "SPINDLE_DIR_CHANGE is now SPINDLE_CHANGE_DIR. Please update your Configuration_adv.h."
 #elif defined(SPINDLE_STOP_ON_DIR_CHANGE)
@@ -2641,16 +2641,14 @@ static_assert(   _ARR_TEST(3,0) && _ARR_TEST(3,1) && _ARR_TEST(3,2)
 
 #if HAS_CUTTER
   #if ENABLED(LASER_POWER_INLINE)
-    #if ENABLED(SPINDLE_CHANGE_DIR)
-      #error "SPINDLE_CHANGE_DIR and LASER_POWER_INLINE are incompatible"
-    #elif ENABLED(LASER_MOVE_G0_OFF)
+    #if ENABLED(LASER_MOVE_G0_OFF)
       #if DISABLED(LASER_MOVE_POWER)
         #error "LASER_MOVE_G0_OFF requires LASER_MOVE_POWER to function"
       #endif
     #endif
     #if ENABLED(LASER_POWER_INLINE_TRAPEZOID)
-      #if DISABLED(SPINDLE_LASER_PWM)
-        #error "LASER_POWER_INLINE_TRAPEZOID requires SPINDLE_LASER_PWM to function"
+      #if DISABLED(LASER_PWM)
+        #error "LASER_POWER_INLINE_TRAPEZOID requires LASER_PWM to function"
       #elif ENABLED(S_CURVE_ACCELERATION)
         //#ifndef LASER_POWER_INLINE_S_CURVE_ACCELERATION_WARN
         //  #define LASER_POWER_INLINE_S_CURVE_ACCELERATION_WARN
@@ -2679,8 +2677,8 @@ static_assert(   _ARR_TEST(3,0) && _ARR_TEST(3,1) && _ARR_TEST(3,2)
   #define _PIN_CONFLICT(P) (PIN_EXISTS(P) && P##_PIN == SPINDLE_LASER_PWM_PIN)
   //#if BOTH(SPINDLE_FEATURE, LASER_FEATURE)
   //  #error "Enable only one of SPINDLE_FEATURE or LASER_FEATURE."
-  #if !PIN_EXISTS(SPINDLE_LASER_ENA)
-    #error "(SPINDLE|LASER)_FEATURE requires SPINDLE_LASER_ENA_PIN."
+  #if !PIN_EXISTS(SPINDLE_ENA) || !PIN_EXISTS(LASER_ENA)
+    #error "(SPINDLE|LASER)_FEATURE requires SPINDLE_ENA_PIN/LASER_ENA_PIN."
   #elif ENABLED(SPINDLE_CHANGE_DIR) && !PIN_EXISTS(SPINDLE_DIR)
     #error "SPINDLE_DIR_PIN is required for SPINDLE_CHANGE_DIR."
   #elif ENABLED(SPINDLE_LASER_PWM)

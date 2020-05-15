@@ -2644,15 +2644,18 @@
 #define LASER_FEATURE
 #if EITHER(SPINDLE_FEATURE, LASER_FEATURE)
 
-  #define SPINDLE_LASER_ACTIVE_HIGH     false   // Set "true" if the on/off function is active HIGH
-  #define SPINDLE_LASER_PWM             true    // Set "true" if your controller supports setting the speed/power
-  #define SPINDLE_LASER_PWM_INVERT      false    // Set "true" if the speed/power goes up when you want it to go slower
+  #define SPINDLE_ACTIVE_HIGH             false   // Set "true" if the on/off function is active HIGH
+  #define LASER_ACTIVE_HIGH               false   // Set "true" if the on/off function is active HIGH
+  #define LASER_PWM                       true    // Set "true" if your controller supports setting the speed/power
+  #define LASER_PWM_INVERT                false    // Set "true" if the speed/power goes up when you want it to go slower
+  #define SPINDLE_PWM                     true    // Set "true" if your controller supports setting the speed/power
+  #define SPINDLE_PWM_INVERT              false    // Set "true" if the speed/power goes up when you want it to go slower
 
   //#define SPINDLE_LASER_FREQUENCY 20000       // (Hz) Spindle/laser frequency (only on supported HALs: AVR and LPC)
   //#define CUTTER_POWER_PROPORTIONAL           // Set speed/power (I or S) as a proportion of 1.0 (e.g., 0.15 = 15%)
 
   #if ENABLED(SPINDLE_FEATURE)
-    //#define SPINDLE_CHANGE_DIR                // Enable if your spindle controller can change spindle direction
+    #define SPINDLE_CHANGE_DIR                  // Enable if your spindle controller can change spindle direction
     #define SPINDLE_CHANGE_DIR_STOP             // Enable if the spindle should stop before changing spin direction
     #define SPINDLE_INVERT_DIR          false   // Set "true" if the spin direction is reversed
 

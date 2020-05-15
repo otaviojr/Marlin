@@ -89,29 +89,31 @@ inline cutter_power_t get_s_power() {
 void GcodeSuite::M3_M4(const bool is_M4) {
 
   #if ENABLED(LASER_POWER_INLINE)
-    if (parser.seen('I') == INLINE_I_STATE) {
-      // Laser power in inline mode
-      cutter.inline_direction(is_M4); // Should always be unused
+    if(DeltaMachineMode::mode == DELTA_MACHINE_MODE_LASER){
+      if (parser.seen('I') == INLINE_I_STATE) {
+        // Laser power in inline mode
+        cutter.inline_direction(is_M4); // Should always be unused
 
-      #if ENABLED(SPINDLE_LASER_PWM)
-        if (parser.seen('O'))
-          cutter.inline_ocr_power(parser.value_byte()); // The OCR is a value from 0 to 255 (uint8_t)
-        else
-          cutter.inline_power(get_s_power());
-      #else
-        cutter.inline_enabled(true);
-      #endif
-      return;
+        #if ENABLED(LASER_PWM)
+          if (parser.seen('O'))
+            cutter.inline_ocr_power(parser.value_byte()); // The OCR is a value from 0 to 255 (uint8_t)
+          else
+            cutter.inline_power(get_s_power());
+        #else
+          cutter.inline_enabled(true);
+        #endif
+        return;
+      }
+      // Non-inline, standard case
+      cutter.inline_disable(); // Prevent future blocks re-setting the power
     }
-    // Non-inline, standard case
-    cutter.inline_disable(); // Prevent future blocks re-setting the power
   #endif
 
   planner.synchronize();   // Wait for previous movement commands (G0/G0/G2/G3) to complete before changing power
 
   cutter.set_direction(is_M4);
 
-  #if ENABLED(SPINDLE_LASER_PWM)
+  #if ENABLED(SPINDLE_PWM) || ENABLED(LASER_PWM)
     if (parser.seenval('O'))
       cutter.set_ocr_power(parser.value_byte()); // The OCR is a value from 0 to 255 (uint8_t)
     else

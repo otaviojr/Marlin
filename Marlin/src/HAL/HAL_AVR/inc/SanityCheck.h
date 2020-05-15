@@ -45,11 +45,11 @@
 /**
  * Sanity checks for Spindle / Laser PWM
  */
-#if ENABLED(SPINDLE_LASER_PWM)
-  #if SPINDLE_LASER_PWM_PIN == 4 || WITHIN(SPINDLE_LASER_PWM_PIN, 11, 13)
-    #error "Counter/Timer for SPINDLE_LASER_PWM_PIN is used by a system interrupt."
-  #elif NUM_SERVOS > 0 && (WITHIN(SPINDLE_LASER_PWM_PIN, 2, 3) || SPINDLE_LASER_PWM_PIN == 5)
-    #error "Counter/Timer for SPINDLE_LASER_PWM_PIN is used by the servo system."
+#if ENABLED(LASER_PWM) || ENABLED(SPINDLE_PWM)
+  #if LASER_PWM_PIN == 4 || SPINDLE_PWM_PIN == 4 || WITHIN(LASER_PWM_PIN, 11, 13) || WITHIN(SPINDLE_PWM_PIN, 11, 13)
+    #error "Counter/Timer for (SPINDLE|LASER)_PWM_PIN is used by a system interrupt."
+  #elif NUM_SERVOS > 0 && (WITHIN(LASER_PWM_PIN, 2, 3) || WITHIN(SPINDLE_PWM_PIN, 2, 3) || LASER_PWM_PIN == 5 || SPINDLE_PWM_PIN == 5)
+    #error "Counter/Timer for (SPINDLE|LASER)_PWM_PIN is used by the servo system."
   #endif
 #endif
 

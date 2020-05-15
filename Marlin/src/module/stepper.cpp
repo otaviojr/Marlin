@@ -2049,7 +2049,7 @@ uint32_t Stepper::block_phase_isr() {
           }
         #else
           if (TEST(stat, 0)) {                        // Planner controls the laser
-            #if ENABLED(SPINDLE_LASER_PWM)
+            #if ENABLED(LASER_PWM) || ENABLED(SPINDLE_PWM)
               if (TEST(stat, 1))                      // Laser is on
                 cutter.set_ocr_power(current_block->laser.power);
               else
@@ -2098,7 +2098,7 @@ uint32_t Stepper::block_phase_isr() {
         // This should mean ending file with 'M5 I' will stop the laser; thus the inline flag isn't needed
         const uint8_t stat = planner.laser.status;
         if (TEST(stat, 0)) {             // Planner controls the laser
-          #if ENABLED(SPINDLE_LASER_PWM)
+          #if ENABLED(LASER_PWM) || ENABLED(SPINDLE_PWM)
             if (TEST(stat, 1))           // Laser is on
               cutter.set_ocr_power(planner.laser.power);
             else
