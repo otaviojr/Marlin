@@ -102,6 +102,7 @@ void GcodeSuite::M3_M4(const bool is_M4) {
         #else
           cutter.inline_enabled(true);
         #endif
+
         return;
       }
       // Non-inline, standard case
@@ -127,14 +128,18 @@ void GcodeSuite::M3_M4(const bool is_M4) {
  * M5 - Cutter OFF (when moves are complete)
  */
 void GcodeSuite::M5() {
+
   #if ENABLED(LASER_POWER_INLINE)
-    if (parser.seen('I') == INLINE_I_STATE) {
-      cutter.inline_enabled(false); // Laser power in inline mode
-      return;
+    if(DeltaMachineMode::mode == DELTA_MACHINE_MODE_LASER){
+      if (parser.seen('I') == INLINE_I_STATE) {
+        cutter.inline_enabled(false); // Laser power in inline mode
+        return;
+      }
+      // Non-inline, standard case
+      cutter.inline_disable(); // Prevent future blocks re-setting the power
     }
-    // Non-inline, standard case
-    cutter.inline_disable(); // Prevent future blocks re-setting the power
   #endif
+
   planner.synchronize();
   cutter.set_enabled(false);
 }

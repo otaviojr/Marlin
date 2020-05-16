@@ -288,9 +288,11 @@
  * D10 - Set max spindle power
  * D11 - Set min spindle power
  * D12 - Set spindle active high signal
+ * D13 - Set spindle pwm invert signal
  * D20 - Set max laser power
  * D21 - Set min laser power
  * D22 - Set spindle active high signal
+ * D23 - Set laser pwm invert signal
  *
  */
 
@@ -406,9 +408,11 @@ private:
   static void D10();
   static void D11();
   static void D12(const int8_t subcode);
+  static void D13(const int8_t subcode);
   static void D20();
   static void D21();
   static void D22(const int8_t subcode);
+  static void D23(const int8_t subcode);
   /*End of Customs Delta3D gcodes*/
 
   static void G0_G1(

@@ -269,7 +269,7 @@
 //
 // M3/M4/M5 - Spindle/Laser Control
 //
-#if HAS_CUTTER && !defined(SPINDLE_LASER_ENA_PIN)
+#if HAS_CUTTER && !defined(SPINDLE_ENA_PIN)  && !defined(LASER_ENA_PIN)
   #if !NUM_SERVOS                         // Use servo connector if possible
     #define SPINDLE_ENA_PIN           4   // Pullup or pulldown!
     #define LASER_ENA_PIN             4   // Pullup or pulldown!

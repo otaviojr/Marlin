@@ -254,9 +254,11 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       case 10: D10(); break;
       case 11: D11(); break;
       case 12: D12(parser.subcode); break;
+      case 13: D13(parser.subcode); break;
       case 20: D20(); break;
       case 21: D21(); break;
       case 22: D22(parser.subcode); break;
+      case 23: D23(parser.subcode); break;
       default: parser.unknown_command_warning(); break;
     }
     break;

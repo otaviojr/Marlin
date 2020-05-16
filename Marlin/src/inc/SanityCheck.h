@@ -2674,70 +2674,75 @@ static_assert(   _ARR_TEST(3,0) && _ARR_TEST(3,1) && _ARR_TEST(3,2)
       #error "Enabled an inline laser feature without inline laser power being enabled"
     #endif
   #endif
-  #define _PIN_CONFLICT(P) (PIN_EXISTS(P) && P##_PIN == SPINDLE_LASER_PWM_PIN)
+
+  #define _LASER_PIN_CONFLICT(P) (PIN_EXISTS(P) && P##_PIN == LASER_PWM_PIN)
+  #define _SPINDLE_PIN_CONFLICT(P) (PIN_EXISTS(P) && P##_PIN == SPINDLE_PWM_PIN)
+
   //#if BOTH(SPINDLE_FEATURE, LASER_FEATURE)
   //  #error "Enable only one of SPINDLE_FEATURE or LASER_FEATURE."
   #if !PIN_EXISTS(SPINDLE_ENA) || !PIN_EXISTS(LASER_ENA)
     #error "(SPINDLE|LASER)_FEATURE requires SPINDLE_ENA_PIN/LASER_ENA_PIN."
   #elif ENABLED(SPINDLE_CHANGE_DIR) && !PIN_EXISTS(SPINDLE_DIR)
     #error "SPINDLE_DIR_PIN is required for SPINDLE_CHANGE_DIR."
-  #elif ENABLED(SPINDLE_LASER_PWM)
-    #if !defined(SPINDLE_LASER_PWM_PIN) || SPINDLE_LASER_PWM_PIN < 0
+  #endif
+
+  #if ENABLED(LASER_PWM)
+    #if !defined(LASER_PWM_PIN) || LASER_PWM_PIN < 0
       #error "SPINDLE_LASER_PWM_PIN is required for SPINDLE_LASER_PWM."
-    #elif !PWM_PIN(SPINDLE_LASER_PWM_PIN)
+    #elif !PWM_PIN(LASER_PWM_PIN)
       #error "SPINDLE_LASER_PWM_PIN not assigned to a PWM pin."
     #endif
-    #if !defined(SPINDLE_LASER_PWM_INVERT)
-      #error "SPINDLE_LASER_PWM_INVERT is required for (SPINDLE|LASER)_FEATURE."
+    #if !defined(LASER_PWM_INVERT)
+      #error "LASER_PWM_INVERT is required for LASER_FEATURE."
     #elif !defined(LASER_SPEED_POWER_SLOPE) || !defined(LASER_SPEED_POWER_INTERCEPT) || !defined(LASER_SPEED_POWER_MIN) || !defined(LASER_SPEED_POWER_MAX) || !defined(LASER_SPEED_POWER_STARTUP)
       #error "SPINDLE_LASER_PWM equation constant(s) missing."
-    #elif _PIN_CONFLICT(X_MIN)
+    #elif _LASER_PIN_CONFLICT(X_MIN)
       #error "SPINDLE_LASER_PWM pin conflicts with X_MIN_PIN."
-    #elif _PIN_CONFLICT(X_MAX)
+    #elif _LASER_PIN_CONFLICT(X_MAX)
       #error "SPINDLE_LASER_PWM pin conflicts with X_MAX_PIN."
-    #elif _PIN_CONFLICT(Z_STEP)
+    #elif _LASER_PIN_CONFLICT(Z_STEP)
       #error "SPINDLE_LASER_PWM pin conflicts with Z_STEP_PIN."
-    #elif _PIN_CONFLICT(CASE_LIGHT)
+    #elif _LASER_PIN_CONFLICT(CASE_LIGHT)
       #error "SPINDLE_LASER_PWM_PIN conflicts with CASE_LIGHT_PIN."
-    #elif _PIN_CONFLICT(E0_AUTO_FAN)
+    #elif _LASER_PIN_CONFLICT(E0_AUTO_FAN)
       #error "SPINDLE_LASER_PWM_PIN conflicts with E0_AUTO_FAN_PIN."
-    #elif _PIN_CONFLICT(E1_AUTO_FAN)
+    #elif _LASER_PIN_CONFLICT(E1_AUTO_FAN)
       #error "SPINDLE_LASER_PWM_PIN conflicts with E1_AUTO_FAN_PIN."
-    #elif _PIN_CONFLICT(E2_AUTO_FAN)
+    #elif _LASER_PIN_CONFLICT(E2_AUTO_FAN)
       #error "SPINDLE_LASER_PWM_PIN conflicts with E2_AUTO_FAN_PIN."
-    #elif _PIN_CONFLICT(E3_AUTO_FAN)
+    #elif _LASER_PIN_CONFLICT(E3_AUTO_FAN)
       #error "SPINDLE_LASER_PWM_PIN conflicts with E3_AUTO_FAN_PIN."
-    #elif _PIN_CONFLICT(E4_AUTO_FAN)
+    #elif _LASER_PIN_CONFLICT(E4_AUTO_FAN)
       #error "SPINDLE_LASER_PWM_PIN conflicts with E4_AUTO_FAN_PIN."
-    #elif _PIN_CONFLICT(E5_AUTO_FAN)
+    #elif _LASER_PIN_CONFLICT(E5_AUTO_FAN)
       #error "SPINDLE_LASER_PWM_PIN conflicts with E5_AUTO_FAN_PIN."
-    #elif _PIN_CONFLICT(E6_AUTO_FAN)
+    #elif _LASER_PIN_CONFLICT(E6_AUTO_FAN)
       #error "SPINDLE_LASER_PWM_PIN conflicts with E6_AUTO_FAN_PIN."
-    #elif _PIN_CONFLICT(E7_AUTO_FAN)
+    #elif _LASER_PIN_CONFLICT(E7_AUTO_FAN)
       #error "SPINDLE_LASER_PWM_PIN conflicts with E7_AUTO_FAN_PIN."
-    #elif _PIN_CONFLICT(FAN)
+    #elif _LASER_PIN_CONFLICT(FAN)
       #error "SPINDLE_LASER_PWM_PIN conflicts with FAN_PIN."
-    #elif _PIN_CONFLICT(FAN1)
+    #elif _LASER_PIN_CONFLICT(FAN1)
       #error "SPINDLE_LASER_PWM_PIN conflicts with FAN1_PIN."
-    #elif _PIN_CONFLICT(FAN2)
+    #elif _LASER_PIN_CONFLICT(FAN2)
       #error "SPINDLE_LASER_PWM_PIN conflicts with FAN2_PIN."
-    #elif _PIN_CONFLICT(FAN3)
+    #elif _LASER_PIN_CONFLICT(FAN3)
       #error "SPINDLE_LASER_PWM_PIN conflicts with FAN3_PIN."
-    #elif _PIN_CONFLICT(FAN4)
+    #elif _LASER_PIN_CONFLICT(FAN4)
       #error "SPINDLE_LASER_PWM_PIN conflicts with FAN4_PIN."
-    #elif _PIN_CONFLICT(FAN5)
+    #elif _LASER_PIN_CONFLICT(FAN5)
       #error "SPINDLE_LASER_PWM_PIN conflicts with FAN5_PIN."
-    #elif _PIN_CONFLICT(FAN6)
+    #elif _LASER_PIN_CONFLICT(FAN6)
       #error "SPINDLE_LASER_PWM_PIN conflicts with FAN6_PIN."
-    #elif _PIN_CONFLICT(FAN7)
+    #elif _LASER_PIN_CONFLICT(FAN7)
       #error "SPINDLE_LASER_PWM_PIN conflicts with FAN7_PIN."
-    #elif _PIN_CONFLICT(CONTROLLERFAN)
+    #elif _LASER_PIN_CONFLICT(CONTROLLERFAN)
       #error "SPINDLE_LASER_PWM_PIN conflicts with CONTROLLERFAN_PIN."
-    #elif _PIN_CONFLICT(MOTOR_CURRENT_PWM_XY)
+    #elif _LASER_PIN_CONFLICT(MOTOR_CURRENT_PWM_XY)
       #error "SPINDLE_LASER_PWM_PIN conflicts with MOTOR_CURRENT_PWM_XY."
-    #elif _PIN_CONFLICT(MOTOR_CURRENT_PWM_Z)
+    #elif _LASER_PIN_CONFLICT(MOTOR_CURRENT_PWM_Z)
       #error "SPINDLE_LASER_PWM_PIN conflicts with MOTOR_CURRENT_PWM_Z."
-    #elif _PIN_CONFLICT(MOTOR_CURRENT_PWM_E)
+    #elif _LASER_PIN_CONFLICT(MOTOR_CURRENT_PWM_E)
       #error "SPINDLE_LASER_PWM_PIN conflicts with MOTOR_CURRENT_PWM_E."
     #endif
   #endif

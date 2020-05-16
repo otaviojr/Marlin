@@ -372,6 +372,9 @@ typedef struct SettingsDataStruct {
   boolean laser_active_high;
   boolean spindle_active_high;
 
+  boolean laser_pwm_invert;
+  boolean spindle_pwm_invert;
+
   //
   // EXTENSIBLE_UI
   //
@@ -1349,6 +1352,9 @@ void MarlinSettings::postprocess() {
 
     EEPROM_WRITE(deltaMachineMode.laser_active_high);
     EEPROM_WRITE(deltaMachineMode.spindle_active_high);
+
+    EEPROM_WRITE(deltaMachineMode.laser_pwm_invert);
+    EEPROM_WRITE(deltaMachineMode.spindle_pwm_invert);
     // Delta3D - EndCustom Settings
 
     //
@@ -2226,6 +2232,9 @@ void MarlinSettings::postprocess() {
 
       EEPROM_READ(deltaMachineMode.laser_active_high);
       EEPROM_READ(deltaMachineMode.spindle_active_high);
+
+      EEPROM_READ(deltaMachineMode.laser_pwm_invert);
+      EEPROM_READ(deltaMachineMode.spindle_pwm_invert);
       // Delta3D - EndCustom Settings
 
       //

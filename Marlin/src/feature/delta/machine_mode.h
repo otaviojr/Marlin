@@ -21,6 +21,9 @@ public:
   static boolean spindle_active_high;
   static boolean laser_active_high;
 
+  static boolean spindle_pwm_invert;
+  static boolean laser_pwm_invert;
+
 public:
   static void set_mode(const DeltaMachineModeValues mode);
   static char* current_mode_name();
@@ -31,8 +34,8 @@ public:
   static uint16_t get_startup_power();
   static uint16_t get_max_power();
   static uint16_t get_min_power();
-  static uint16_t get_intercept_power();
-  static uint16_t get_slope_power();
+  static float get_intercept_power();
+  static float get_slope_power();
 
   static boolean get_active_high();
 
@@ -49,6 +52,9 @@ public:
 
   static void set_laser_active_high(boolean active);
   static void set_spindle_active_high(boolean active);
+
+  static void set_laser_pwm_invert(boolean invert);
+  static void set_spindle_pwm_invert(boolean invert);
 };
 
 extern DeltaMachineMode deltaMachineMode;

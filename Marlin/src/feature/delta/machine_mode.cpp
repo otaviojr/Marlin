@@ -3,9 +3,6 @@
 
 DeltaMachineMode deltaMachineMode;
 
-#define SPINDLE_PWM_OFF ((SPINDLE_PWM_INVERT) ? 255 : 0)
-#define LASER_PWM_OFF ((LASER_PWM_INVERT) ? 255 : 0)
-
 static char* deltaModeNames[] = {
   "",
   "CNC",
@@ -23,6 +20,8 @@ static uint16_t DeltaMachineMode::max_laser_power = LASER_SPEED_POWER_MAX;
 static boolean DeltaMachineMode::spindle_active_high = SPINDLE_ACTIVE_HIGH;
 static boolean DeltaMachineMode::laser_active_high = LASER_ACTIVE_HIGH;
 
+static boolean DeltaMachineMode::spindle_pwm_invert = SPINDLE_PWM_INVERT;
+static boolean DeltaMachineMode::laser_pwm_invert = LASER_PWM_INVERT;
 
 static void DeltaMachineMode::set_mode(const enum DeltaMachineModeValues mode){
     DeltaMachineMode::mode = mode;
@@ -37,7 +36,8 @@ static boolean DeltaMachineMode::isCNC() {
 }
 
 static uint8_t DeltaMachineMode::get_pwm_off() {
-  return (DeltaMachineMode::isCNC() ? SPINDLE_PWM_OFF : LASER_PWM_OFF);
+  return (DeltaMachineMode::isCNC() ? 
+    (DeltaMachineMode::spindle_pwm_invert ? 255 : 0) : (DeltaMachineMode::laser_pwm_invert ? 255 : 0));
 }
 
 static boolean DeltaMachineMode::get_active_high() {
@@ -65,12 +65,12 @@ static uint16_t DeltaMachineMode::get_min_power() {
     DeltaMachineMode::min_spindle_power : DeltaMachineMode::min_laser_power);
 }
 
-static uint16_t DeltaMachineMode::get_intercept_power() {
+static float DeltaMachineMode::get_intercept_power() {
   return (DeltaMachineMode::isCNC() ? 
     SPINDLE_SPEED_POWER_INTERCEPT : LASER_SPEED_POWER_INTERCEPT);
 }
 
-static uint16_t DeltaMachineMode::get_slope_power() {
+static float DeltaMachineMode::get_slope_power() {
   return (DeltaMachineMode::isCNC() ? 
     SPINDLE_SPEED_POWER_SLOPE : LASER_SPEED_POWER_SLOPE);
 }
@@ -101,4 +101,11 @@ static void DeltaMachineMode::set_laser_active_high(boolean active) {
 }
 static void DeltaMachineMode::set_spindle_active_high(boolean active) {
   DeltaMachineMode::spindle_active_high = active;
+}
+
+static void DeltaMachineMode::set_laser_pwm_invert(boolean invert) {
+  DeltaMachineMode::laser_pwm_invert = invert;
+}
+static void DeltaMachineMode::set_spindle_pwm_invert(boolean invert) {
+  DeltaMachineMode::spindle_pwm_invert = invert;
 }

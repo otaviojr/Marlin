@@ -418,4 +418,7 @@
 
 #define STR_DELTA3D_SPINDLE_ACTIVE_HIGH_SET "Spindle active high is "
 #define STR_DELTA3D_LASER_ACTIVE_HIGH_SET "Laser active high is "
+
+#define STR_DELTA3D_SPINDLE_PWM_INVERT_SET "Spindle pwm invert is "
+#define STR_DELTA3D_LASER_PWM_INVERT_SET "Laser pwm invert is "
 /* End of Delta3D Language Extensions */ 

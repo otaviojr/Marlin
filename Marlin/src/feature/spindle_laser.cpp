@@ -73,10 +73,10 @@ void SpindleLaser::init() {
   void SpindleLaser::set_ocr(const uint8_t ocr) {
     if(DeltaMachineMode::isCNC()){
       WRITE(SPINDLE_ENA_PIN, DeltaMachineMode::get_active_high()); // turn spindle on
-      analogWrite(pin_t(SPINDLE_PWM), ocr ^ DeltaMachineMode::get_pwm_off());
+      analogWrite(pin_t(SPINDLE_PWM_PIN), ocr ^ DeltaMachineMode::get_pwm_off());
     } else {
       WRITE(LASER_ENA_PIN, DeltaMachineMode::get_active_high()); // turn spindle on
-      analogWrite(pin_t(LASER_PWM), ocr ^ DeltaMachineMode::get_pwm_off());
+      analogWrite(pin_t(LASER_PWM_PIN), ocr ^ DeltaMachineMode::get_pwm_off());
     }
   }
   //
@@ -104,17 +104,17 @@ void SpindleLaser::apply_power(const cutter_power_t inpow) {
   last_power_applied = inpow;
   #if ENABLED(LASER_PWM) || ENABLED(SPINDLE_PWM)
     if (enabled())
-      set_ocr(translate_power(power));
-    else {                                                                                // Convert RPM to PWM duty cycle
+      set_ocr(translate_power(inpow));
+    else {                                                                                      // Convert RPM to PWM duty cycle
       if(DeltaMachineMode::isCNC()){
         WRITE(SPINDLE_ENA_PIN, !DeltaMachineMode::get_active_high());                           // Turn spindle off
+        analogWrite(pin_t(SPINDLE_PWM_PIN), DeltaMachineMode::get_pwm_off());                   // Only write low byte
       } else {
-        WRITE(LASER_ENA_PIN, !DeltaMachineMode::get_active_high());                           // Turn spindle off
+        WRITE(LASER_ENA_PIN, !DeltaMachineMode::get_active_high());                             // Turn laser off
+        analogWrite(pin_t(LASER_PWM_PIN), DeltaMachineMode::get_pwm_off());                     // Only write low byte
       }
-      analogWrite(pin_t(DeltaMachineMode::get_pwm_pin()), DeltaMachineMode::get_pwm_off());                   // Only write low byte
     }
   #else
-    uint8_t pin = DeltaMachineMode::get_enable_pin();
     if(DeltaMachineMode::isCNC()){
       WRITE(SPINDLE_ENA_PIN, (DeltaMachineMode::get_active_high()) ? enabled() : !enabled());
     } else {
