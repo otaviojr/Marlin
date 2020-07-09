@@ -42,26 +42,25 @@ cutter_power_t SpindleLaser::isOn = false;
 // Init the cutter to a safe OFF state
 //
 void SpindleLaser::init() {
-  if(DeltaMachineMode::isCNC()){
-    OUT_WRITE(SPINDLE_ENA_PIN, !DeltaMachineMode::get_active_high()); // Init spindle to off
-    #if ENABLED(SPINDLE_CHANGE_DIR)
-      OUT_WRITE(SPINDLE_DIR_PIN, SPINDLE_INVERT_DIR ? 255 : 0);   // Init rotation to clockwise (M3)
-    #endif
-  } else {
-    OUT_WRITE(LASER_ENA_PIN, !DeltaMachineMode::get_active_high()); // Init spindle to off
-  }
-
-  #if ENABLED(LASER_PWM) || ENABLED(SPINDLE_PWM)
-    if(DeltaMachineMode::isCNC()){
-      SET_PWM(SPINDLE_PWM_PIN);
-      analogWrite(pin_t(SPINDLE_PWM_PIN), DeltaMachineMode::get_pwm_off());  // set to lowest speed
-    } else {
-      SET_PWM(LASER_PWM_PIN);
-      analogWrite(pin_t(LASER_PWM_PIN), DeltaMachineMode::get_pwm_off());  // set to lowest speed
-    }
+  OUT_WRITE(SPINDLE_ENA_PIN, !DeltaMachineMode::get_spindle_active_high()); // Init spindle to off
+  #if ENABLED(SPINDLE_CHANGE_DIR)
+    OUT_WRITE(SPINDLE_DIR_PIN, SPINDLE_INVERT_DIR ? 255 : 0);   // Init rotation to clockwise (M3)
   #endif
+  OUT_WRITE(LASER_ENA_PIN, !DeltaMachineMode::get_laser_active_high()); // Init spindle to off
+
+  #if ENABLED(LASER_PWM)
+    SET_PWM(LASER_PWM_PIN);
+    analogWrite(pin_t(LASER_PWM_PIN), DeltaMachineMode::get_laser_pwm_off());  // set to lowest speed
+  #endif
+
+  #if ENABLED(SPINDLE_PWM)
+    SET_PWM(SPINDLE_PWM_PIN);
+    analogWrite(pin_t(SPINDLE_PWM_PIN), DeltaMachineMode::get_spindle_pwm_off());  // set to lowest speed
+  #endif
+
   #if ENABLED(HAL_CAN_SET_PWM_FREQ) && defined(SPINDLE_LASER_FREQUENCY)
-    set_pwm_frequency(pin_t(DeltaMachineMode::get_pwm_pin()), SPINDLE_LASER_FREQUENCY);
+    set_pwm_frequency(pin_t(SPINDLE_PWM_PIN), SPINDLE_LASER_FREQUENCY);
+    set_pwm_frequency(pin_t(LASER_PWM_PIN), SPINDLE_LASER_FREQUENCY);
   #endif
 }
 
@@ -71,11 +70,14 @@ void SpindleLaser::init() {
   // Set the cutter PWM directly to the given ocr value
   //
   void SpindleLaser::set_ocr(const uint8_t ocr) {
+    SERIAL_ECHO_START();
+    SERIAL_ECHOLNPAIR("ocr: ", int(ocr));
+
     if(DeltaMachineMode::isCNC()){
       WRITE(SPINDLE_ENA_PIN, DeltaMachineMode::get_active_high()); // turn spindle on
       analogWrite(pin_t(SPINDLE_PWM_PIN), ocr ^ DeltaMachineMode::get_pwm_off());
     } else {
-      WRITE(LASER_ENA_PIN, DeltaMachineMode::get_active_high()); // turn spindle on
+      WRITE(LASER_ENA_PIN, DeltaMachineMode::get_active_high()); // turn laser on
       analogWrite(pin_t(LASER_PWM_PIN), ocr ^ DeltaMachineMode::get_pwm_off());
     }
   }
@@ -87,9 +89,11 @@ void SpindleLaser::init() {
                       min_ocr = (DeltaMachineMode::get_min_power() - (DeltaMachineMode::get_intercept_power())) * inv_slope,  // Minimum allowed
                       max_ocr = (DeltaMachineMode::get_max_power() - (DeltaMachineMode::get_intercept_power())) * inv_slope;  // Maximum allowed
       int16_t ocr_val;
+
            if (pwr <= DeltaMachineMode::get_min_power()) ocr_val = min_ocr;                                 // Use minimum if set below
       else if (pwr >= DeltaMachineMode::get_max_power()) ocr_val = max_ocr;                                 // Use maximum if set above
       else ocr_val = (pwr - (DeltaMachineMode::get_intercept_power())) * inv_slope;                         // Use calculated OCR value
+
       return ocr_val & 0xFF;                                                                                // ...limited to Atmel PWM max
   }
 

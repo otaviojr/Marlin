@@ -37,10 +37,15 @@ public:
   static float get_intercept_power();
   static float get_slope_power();
 
+  static boolean get_spindle_active_high();
+  static boolean get_laser_active_high();
   static boolean get_active_high();
 
   static uint8_t get_enable_pin();
   static uint8_t get_pwm_pin();
+  
+  static uint8_t get_spindle_pwm_off();
+  static uint8_t get_laser_pwm_off();
   static uint8_t get_pwm_off();
 
   static boolean isCNC();

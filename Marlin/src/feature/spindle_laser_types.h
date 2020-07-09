@@ -36,7 +36,7 @@
 #define MSG_CUTTER(M) _MSG_CUTTER(M)
 
 #if DISABLED(CUTTER_POWER_PROPORTIONAL)
-  #if SPEED_POWER_MAX > 255
+  #if SPINDLE_SPEED_POWER_MAX > 255 || LASER_SPEED_POWER_MAX > 255
     #define cutter_power_t   uint16_t
     #define CUTTER_MENU_TYPE uint16_5
   #else

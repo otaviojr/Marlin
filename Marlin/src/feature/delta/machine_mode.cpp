@@ -35,9 +35,25 @@ static boolean DeltaMachineMode::isCNC() {
   return (DeltaMachineMode::mode == DELTA_MACHINE_MODE_CNC);
 }
 
+static uint8_t DeltaMachineMode::get_spindle_pwm_off() {
+  return (DeltaMachineMode::spindle_pwm_invert ? 255 : 0);
+}
+
+static uint8_t DeltaMachineMode::get_laser_pwm_off() {
+  return (DeltaMachineMode::laser_pwm_invert ? 255 : 0);
+}
+
 static uint8_t DeltaMachineMode::get_pwm_off() {
   return (DeltaMachineMode::isCNC() ? 
     (DeltaMachineMode::spindle_pwm_invert ? 255 : 0) : (DeltaMachineMode::laser_pwm_invert ? 255 : 0));
+}
+
+static boolean DeltaMachineMode::get_spindle_active_high() {
+  return DeltaMachineMode::spindle_active_high;
+}
+
+static boolean DeltaMachineMode::get_laser_active_high() {
+  return DeltaMachineMode::laser_active_high;
 }
 
 static boolean DeltaMachineMode::get_active_high() {
@@ -71,8 +87,7 @@ static float DeltaMachineMode::get_intercept_power() {
 }
 
 static float DeltaMachineMode::get_slope_power() {
-  return (DeltaMachineMode::isCNC() ? 
-    SPINDLE_SPEED_POWER_SLOPE : LASER_SPEED_POWER_SLOPE);
+  return DeltaMachineMode::get_max_power()/255;
 }
 
 

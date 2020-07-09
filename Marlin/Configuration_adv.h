@@ -2670,7 +2670,7 @@
      *
      * Set these required parameters for your controller
      */
-    #define SPINDLE_SPEED_POWER_SLOPE    118.4
+    #define SPINDLE_SPEED_POWER_SLOPE      94.11    //118.4
     #define SPINDLE_SPEED_POWER_INTERCEPT  0
     #define SPINDLE_SPEED_POWER_MIN     5000
     #define SPINDLE_SPEED_POWER_MAX    30000    // SuperPID router controller 0 - 30,000 RPM
@@ -2767,12 +2767,14 @@
  *
  * Note: COOLANT_MIST_PIN and/or COOLANT_FLOOD_PIN must also be defined.
  */
-//#define COOLANT_CONTROL
+#define COOLANT_CONTROL
 #if ENABLED(COOLANT_CONTROL)
   #define COOLANT_MIST                // Enable if mist coolant is present
   #define COOLANT_FLOOD               // Enable if flood coolant is present
-  #define COOLANT_MIST_INVERT  false  // Set "true" if the on/off function is reversed
-  #define COOLANT_FLOOD_INVERT false  // Set "true" if the on/off function is reversed
+  #define COOLANT_MIST_INVERT  0      // Set "true" if the on/off function is reversed
+  #define COOLANT_FLOOD_INVERT 0      // Set "true" if the on/off function is reversed
+  #define COOLANT_MIST_PIN   40
+  #define COOLANT_FLOOD_PIN  40
 #endif
 
 /**
