@@ -272,11 +272,13 @@
 #if HAS_CUTTER && !defined(SPINDLE_ENA_PIN)  && !defined(LASER_ENA_PIN)
   #if !NUM_SERVOS                          // Use servo connector if possible
     #define SPINDLE_ENA_PIN           4    // Pullup or pulldown!
-    #define LASER_ENA_PIN             42   // Pullup or pulldown!
+    #define LASER_ONOFF_PIN           42   // Pullup or pulldown!
+    #define LASER_ENA_PIN             53   // Pullup or pulldown!
     #define SPINDLE_PWM_PIN           6    // Hardware PWM
-    #define LASER_PWM_PIN             44   // Hardware PWM
+    #define LASER_PWM_PIN             11   // Hardware PWM
     #define SPINDLE_DIR_PIN           5
   #elif HAS_FREE_AUX2_PINS
+    #error "Wrong pins"
     #define SPINDLE_ENA_PIN           40   // Pullup or pulldown!
     #define LASER_ENA_PIN             40   // Pullup or pulldown!
     #define SPINDLE_PWM_PIN           44   // Hardware PWM
@@ -285,6 +287,8 @@
   #else
     #error "No auto-assignable Spindle/Laser pins available."
   #endif
+#else
+  #error "Something is wrong... cutter must be available"
 #endif
 
 //

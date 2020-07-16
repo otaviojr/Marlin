@@ -8,7 +8,7 @@
 void GcodeSuite::D1(const int8_t subcode) 
 {
   if(subcode >= DELTA_MACHINE_MODE_CNC && subcode <= DELTA_MACHINE_MODE_3DPRINTER){
-    DeltaMachineMode::set_mode(subcode);
+    DeltaMachineMode::set_mode((DeltaMachineModeValues)subcode);
     SERIAL_ECHO_START();
     SERIAL_ECHOLNPAIR(STR_DELTA3D_MODE_SET, DeltaMachineMode::current_mode_name(),"(",subcode,")");
     SERIAL_EOL();

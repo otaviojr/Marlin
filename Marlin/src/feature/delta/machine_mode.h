@@ -8,7 +8,7 @@ enum DeltaMachineModeValues : uint8_t {
     DELTA_MACHINE_MODE_3DPRINTER=3
 };
 
-extern char* deltaModeNames[];
+//extern char* deltaModeNames[];
 
 class DeltaMachineMode {
 public:
@@ -25,6 +25,9 @@ public:
   static boolean laser_pwm_invert;
 
 public:
+
+  static void init();
+
   static void set_mode(const DeltaMachineModeValues mode);
   static char* current_mode_name();
 
