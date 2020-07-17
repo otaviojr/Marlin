@@ -2573,7 +2573,7 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
   #endif
 
   #if ENABLED(POWER_LOSS_RECOVERY)
-    block->sdpos = recovery.command_sdpos();
+    block->sdpos = recovery.command_sdpos(); 
   #endif
 
   // Movement was accepted
