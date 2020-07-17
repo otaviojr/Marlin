@@ -221,7 +221,7 @@ public:
 
     static inline void enable_with_dir(const bool reverse) {
       isReady = true;
-      const uint8_t ocr = TERN(LASER_PWM, upower_to_ocr(menuPower), 255);
+      const uint8_t ocr = TERN(DeltaMachineMode::get_pwm_pin(), upower_to_ocr(menuPower), 255);
       if (menuPower)
         power = ocr;
       else
@@ -265,7 +265,7 @@ public:
         isReady = false;
         unitPower = menuPower = 0;
         planner.laser_inline.status.isPlanned = false;
-        TERN(LASER_PWM, inline_ocr_power, inline_power)(0);
+        TERN(DeltaMachineMode::get_pwm_pin(), inline_ocr_power, inline_power)(0);
       }
     }
 
