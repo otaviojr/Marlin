@@ -211,10 +211,9 @@ float Planner::previous_nominal_speed_sqr;
 #endif
 
 #ifdef XY_FREQUENCY_LIMIT
-  // Old direction bits. Used for speed calculations
-  unsigned char Planner::old_direction_bits = 0;
-  // Segment times (in µs). Used for speed calculations
-  xy_ulong_t Planner::axis_segment_time_us[3] = { { MAX_FREQ_TIME_US + 1, MAX_FREQ_TIME_US + 1 } };
+  int8_t Planner::xy_freq_limit_hz = XY_FREQUENCY_LIMIT;
+  float Planner::xy_freq_min_speed_factor = (XY_FREQUENCY_MIN_PERCENT) * 0.01f;
+  int32_t Planner::xy_freq_min_interval_us = LROUND(1000000.0 / (XY_FREQUENCY_LIMIT));
 #endif
 
 #if ENABLED(LIN_ADVANCE)
@@ -1016,8 +1015,8 @@ void Planner::reverse_pass() {
     // Perform the reverse pass
     block_t *current = &block_buffer[block_index];
 
-    // Only consider non sync blocks
-    if (!TEST(current->flag, BLOCK_BIT_SYNC_POSITION)) {
+    // Only consider non sync and page blocks
+    if (!TEST(current->flag, BLOCK_BIT_SYNC_POSITION) && !IS_PAGE(current)) {
       reverse_pass_kernel(current, next);
       next = current;
     }
@@ -1111,8 +1110,8 @@ void Planner::forward_pass() {
     // Perform the forward pass
     block = &block_buffer[block_index];
 
-    // Skip SYNC blocks
-    if (!TEST(block->flag, BLOCK_BIT_SYNC_POSITION)) {
+    // Skip SYNC and page blocks
+    if (!TEST(block->flag, BLOCK_BIT_SYNC_POSITION) && !IS_PAGE(block)) {
       // If there's no previous block or the previous block is not
       // BUSY (thus, modifiable) run the forward_pass_kernel. Otherwise,
       // the previous block became BUSY, so assume the current block's
@@ -1161,8 +1160,8 @@ void Planner::recalculate_trapezoids() {
 
     next = &block_buffer[block_index];
 
-    // Skip sync blocks
-    if (!TEST(next->flag, BLOCK_BIT_SYNC_POSITION)) {
+    // Skip sync and page blocks
+    if (!TEST(next->flag, BLOCK_BIT_SYNC_POSITION) && !IS_PAGE(next)) {
       next_entry_speed = SQRT(next->entry_speed_sqr);
 
       if (block) {
@@ -1666,15 +1665,14 @@ float Planner::get_axis_position_mm(const AxisEnum axis) {
 /**
  * Block until all buffered steps are executed / cleaned
  */
-void Planner::synchronize() {
-  while (
-    has_blocks_queued() || cleaning_buffer_counter
-    #if ENABLED(EXTERNAL_CLOSED_LOOP_CONTROLLER)
-      || (READ(CLOSED_LOOP_ENABLE_PIN) && !READ(CLOSED_LOOP_MOVE_COMPLETE_PIN))
-    #endif
-  ) idle();
-}
-
+ void Planner::synchronize() {
+   while (
+     has_blocks_queued() || cleaning_buffer_counter
+     #if ENABLED(EXTERNAL_CLOSED_LOOP_CONTROLLER)
+       || (READ(CLOSED_LOOP_ENABLE_PIN) && !READ(CLOSED_LOOP_MOVE_COMPLETE_PIN))
+     #endif
+   ) idle();
+ }
 /**
  * Planner::_buffer_steps
  *
@@ -1749,7 +1747,7 @@ bool Planner::_buffer_steps(const xyze_long_t &target
  *  fr_mm_s     - (target) speed of the move
  *  extruder    - target extruder
  *
- * Returns true is movement is acceptable, false otherwise
+ * Returns true if movement is acceptable, false otherwise
  */
 bool Planner::_populate_block(block_t * const block, bool split_move,
   const abce_long_t &target
@@ -2085,16 +2083,20 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
   const uint8_t moves_queued = nonbusy_movesplanned();
 
   // Slow down when the buffer starts to empty, rather than wait at the corner for a buffer refill
-  #if EITHER(SLOWDOWN, ULTRA_LCD) || defined(XY_FREQUENCY_LIMIT)
+  #if EITHER(SLOWDOWN, HAS_SPI_LCD) || defined(XY_FREQUENCY_LIMIT)
     // Segment time im micro seconds
-    uint32_t segment_time_us = LROUND(1000000.0f / inverse_secs);
+    int32_t segment_time_us = LROUND(1000000.0f / inverse_secs);
   #endif
 
   #if ENABLED(SLOWDOWN)
-    if (WITHIN(moves_queued, 2, (BLOCK_BUFFER_SIZE) / 2 - 1)) {
-      if (segment_time_us < settings.min_segment_time_us) {
-        // buffer is draining, add extra time.  The amount of time added increases if the buffer is still emptied more.
-        const uint32_t nst = segment_time_us + LROUND(2 * (settings.min_segment_time_us - segment_time_us) / moves_queued);
+    #ifndef SLOWDOWN_DIVISOR
+      #define SLOWDOWN_DIVISOR 2
+    #endif
+    if (WITHIN(moves_queued, 2, (BLOCK_BUFFER_SIZE) / (SLOWDOWN_DIVISOR) - 1)) {
+      const int32_t time_diff = settings.min_segment_time_us - segment_time_us;
+      if (time_diff > 0) {
+        // Buffer is draining so add extra time. The amount of time added increases if the buffer is still emptied more.
+        const int32_t nst = segment_time_us + LROUND(2 * time_diff / moves_queued);
         inverse_secs = 1000000.0f / nst;
         #if defined(XY_FREQUENCY_LIMIT) || HAS_SPI_LCD
           segment_time_us = nst;
@@ -2361,15 +2363,17 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
         { delta_mm.x, delta_mm.y, delta_mm.z, delta_mm.e }
       #endif
     ;
-    unit_vec *= inverse_millimeters;
 
+    /**
+     * On CoreXY the length of the vector [A,B] is SQRT(2) times the length of the head movement vector [X,Y].
+     * So taking Z and E into account, we cannot scale to a unit vector with "inverse_millimeters".
+     * => normalize the complete junction vector.
+     * Elsewise, when needed JD factors in the E component
+     */
     #if IS_CORE && DISABLED(CLASSIC_JERK)
-      /**
-       * On CoreXY the length of the vector [A,B] is SQRT(2) times the length of the head movement vector [X,Y].
-       * So taking Z and E into account, we cannot scale to a unit vector with "inverse_millimeters".
-       * => normalize the complete junction vector
-       */
-      normalize_junction_vector(unit_vec);
+      normalize_junction_vector(unit_vec);  // Normalize with XYZE components
+    #else
+      unit_vec *= inverse_millimeters;      // Use pre-calculated (1 / SQRT(x^2 + y^2 + z^2))
     #endif
 
     // Skip first block or when previous_nominal_speed is used as a flag for homing and offset cycles.
@@ -2394,7 +2398,7 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
         const float junction_acceleration = limit_value_by_axis_maximum(block->acceleration, junction_unit_vec),
                     sin_theta_d2 = SQRT(0.5f * (1.0f - junction_cos_theta)); // Trig half angle identity. Always positive.
 
-        vmax_junction_sqr = (junction_acceleration * junction_deviation_mm * sin_theta_d2) / (1.0f - sin_theta_d2);
+        vmax_junction_sqr = junction_acceleration * junction_deviation_mm * sin_theta_d2 / (1.0f - sin_theta_d2);
 
         #if ENABLED(JD_HANDLE_SMALL_SEGMENTS)
 
@@ -2517,11 +2521,10 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
     // Start with a safe speed (from which the machine may halt to stop immediately).
     float safe_speed = nominal_speed;
 
-    #ifdef TRAVEL_EXTRA_XYJERK
-      const float extra_xyjerk = (de <= 0) ? TRAVEL_EXTRA_XYJERK : 0;
-    #else
-      constexpr float extra_xyjerk = 0;
+    #ifndef TRAVEL_EXTRA_XYJERK
+      #define TRAVEL_EXTRA_XYJERK 0
     #endif
+    const float extra_xyjerk = (de <= 0) ? TRAVEL_EXTRA_XYJERK : 0;
 
     uint8_t limited = 0;
     #if HAS_LINEAR_E_JERK
@@ -2559,7 +2562,13 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
       // Pick the smaller of the nominal speeds. Higher speed shall not be achieved at the junction during coasting.
       CACHED_SQRT(previous_nominal_speed, previous_nominal_speed_sqr);
 
-      vmax_junction = _MIN(nominal_speed, previous_nominal_speed);
+      float smaller_speed_factor = 1.0f;
+      if (nominal_speed < previous_nominal_speed) {
+        vmax_junction = nominal_speed;
+        smaller_speed_factor = vmax_junction / previous_nominal_speed;
+      }
+      else
+        vmax_junction = previous_nominal_speed;
 
       // Now limit the jerk in all axes.
       const float smaller_speed_factor = vmax_junction / previous_nominal_speed;
@@ -2584,11 +2593,7 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
             : // v_exit <= v_entry                coasting             axis reversal
               ( (v_entry < 0 || v_exit > 0) ? (v_entry - v_exit) : _MAX(-v_exit, v_entry) );
 
-        const float maxj = (max_jerk[axis]
-          #ifdef TRAVEL_EXTRA_XYJERK
-            + (axis == X_AXIS || axis == Y_AXIS ? extra_xyjerk : 0)
-          #endif
-        );
+        const float maxj = (max_jerk[axis] + (axis == X_AXIS || axis == Y_AXIS ? extra_xyjerk : 0.0f));
 
         if (jerk > maxj) {
           v_factor *= maxj / jerk;
@@ -2608,9 +2613,9 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
     previous_safe_speed = safe_speed;
 
     #if DISABLED(CLASSIC_JERK)
-      vmax_junction_sqr = _MIN(vmax_junction_sqr, sq(vmax_junction));
+      NOMORE(vmax_junction_sqr, sq(vmax_junction));   // Throttle down to max speed
     #else
-      vmax_junction_sqr = sq(vmax_junction);
+      vmax_junction_sqr = sq(vmax_junction);          // Go up or down to the new speed
     #endif
 
   #endif // Classic Jerk Limiting

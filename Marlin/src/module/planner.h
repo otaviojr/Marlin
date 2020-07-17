@@ -32,6 +32,17 @@
 
 #include "../MarlinCore.h"
 
+#if ENABLED(JD_HANDLE_SMALL_SEGMENTS)
+  // Enable this option for perfect accuracy but maximum
+  // computation. Should be fine on ARM processors.
+  //#define JD_USE_MATH_ACOS
+
+  // Disable this option to save 120 bytes of PROGMEM,
+  // but incur increased computation and a reduction
+  // in accuracy.
+  #define JD_USE_LOOKUP_TABLE
+#endif
+
 #include "motion.h"
 #include "../gcode/queue.h"
 
@@ -55,11 +66,11 @@
   #include "../feature/spindle_laser_types.h"
 #endif
 
-#if ENABLED(JD_HANDLE_SMALL_SEGMENTS)
-  // Enable this option for perfect accuracy but maximum
-  // computation. Should be fine on ARM processors.
-  //#define JD_USE_MATH_ACOS
-
+#if ENABLED(DIRECT_STEPPING)
+  #include "../feature/direct_stepping.h"
+  #define IS_PAGE(B) TEST(B->flag, BLOCK_BIT_IS_PAGE)
+#else
+  #define IS_PAGE(B) false
   // Disable this option to save 120 bytes of PROGMEM,
   // but incur increased computation and a reduction
   // in accuracy.
@@ -72,6 +83,9 @@
                             manual_feedrate_mm_s { _mf.x / 60.0f, _mf.y / 60.0f, _mf.z / 60.0f, _mf.e / 60.0f };
 #endif
 
+#if IS_KINEMATIC && HAS_JUNCTION_DEVIATION
+  #define HAS_DIST_MM_ARG 1
+#endif
 enum BlockFlagBit : char {
   // Recalculate trapezoids on entry junction. For optimization.
   BLOCK_BIT_RECALCULATE,
@@ -86,6 +100,10 @@ enum BlockFlagBit : char {
 
   // Sync the stepper counts from the block
   BLOCK_BIT_SYNC_POSITION
+  // Direct stepping page
+  #if ENABLED(DIRECT_STEPPING)
+    , BLOCK_BIT_IS_PAGE
+  #endif
 };
 
 enum BlockFlag : char {
@@ -93,6 +111,9 @@ enum BlockFlag : char {
   BLOCK_FLAG_NOMINAL_LENGTH       = _BV(BLOCK_BIT_NOMINAL_LENGTH),
   BLOCK_FLAG_CONTINUED            = _BV(BLOCK_BIT_CONTINUED),
   BLOCK_FLAG_SYNC_POSITION        = _BV(BLOCK_BIT_SYNC_POSITION)
+  #if ENABLED(DIRECT_STEPPING)
+    , BLOCK_FLAG_IS_PAGE            = _BV(BLOCK_BIT_IS_PAGE)
+  #endif
 };
 
 #if ENABLED(LASER_POWER_INLINE)
@@ -178,6 +199,9 @@ typedef struct block_t {
            final_rate,                      // The minimal rate at exit
            acceleration_steps_per_s2;       // acceleration steps/sec^2
 
+  #if ENABLED(DIRECT_STEPPING)
+    page_idx_t page_idx;                    // Page index used for direct stepping
+  #endif
   #if HAS_CUTTER
     cutter_power_t cutter_power;            // Power level for Spindle, Laser, etc.
   #endif
