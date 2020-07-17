@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -35,15 +35,13 @@
 #endif
 #define MSG_CUTTER(M) _MSG_CUTTER(M)
 
-#if DISABLED(CUTTER_POWER_PROPORTIONAL)
-  #if SPINDLE_SPEED_POWER_MAX > 255 || LASER_SPEED_POWER_MAX > 255
-    #define cutter_power_t   uint16_t
-    #define CUTTER_MENU_TYPE uint16_5
-  #else
-    #define cutter_power_t   uint8_t
-    #define CUTTER_MENU_TYPE uint8
-  #endif
-#else
-  #define cutter_power_t   float
-  #define CUTTER_MENU_TYPE float52
+typedef uint16_t cutter_cpower_t;
+typedef uint16_t cutter_power_t;
+
+#define CUTTER_MENU_POWER_TYPE uint16_5
+#define cutter_power2str       ui16tostr5rj
+
+#if ENABLED(MARLIN_DEV_MODE)
+  typedef uint16_t cutter_frequency_t;
+  #define CUTTER_MENU_FREQUENCY_TYPE uint16_5
 #endif

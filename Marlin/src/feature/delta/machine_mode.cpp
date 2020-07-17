@@ -42,6 +42,10 @@ char* DeltaMachineMode::current_mode_name() {
   return deltaModeNames[DeltaMachineMode::mode];
 }
 
+boolean DeltaMachineMode::isLaser() {
+  return (DeltaMachineMode::mode == DELTA_MACHINE_MODE_LASER);
+}
+
 boolean DeltaMachineMode::isCNC() {
   return (DeltaMachineMode::mode == DELTA_MACHINE_MODE_CNC);
 }

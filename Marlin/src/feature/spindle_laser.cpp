@@ -31,12 +31,15 @@
 #include "spindle_laser.h"
 
 SpindleLaser cutter;
+uint8_t SpindleLaser::power;
+bool SpindleLaser::isReady;                                           // Ready to apply power setting from the UI to OCR
+cutter_power_t SpindleLaser::menuPower,                               // Power set via LCD menu in PWM, PERCENT, or RPM
+               SpindleLaser::unitPower;                               // LCD status power in PWM, PERCENT, or RPM
 
-cutter_power_t SpindleLaser::power; // = 0
-cutter_power_t SpindleLaser::isOn = false;
-#if HAS_LCD_MENU
-  cutter_power_t SpindleLaser::menuLaserPower; // = 0
+#if ENABLED(MARLIN_DEV_MODE)
+  cutter_frequency_t SpindleLaser::frequency;                         // setting PWM frequency; range: 2K - 50K
 #endif
+#define SPINDLE_LASER_PWM_OFF ((SPINDLE_LASER_PWM_INVERT) ? 255 : 0)
 
 //
 // Init the cutter to a safe OFF state
@@ -44,7 +47,7 @@ cutter_power_t SpindleLaser::isOn = false;
 void SpindleLaser::init() {
   OUT_WRITE(SPINDLE_ENA_PIN, !DeltaMachineMode::get_spindle_active_high()); // Init spindle to off
   #if ENABLED(SPINDLE_CHANGE_DIR)
-    OUT_WRITE(SPINDLE_DIR_PIN, SPINDLE_INVERT_DIR ? 255 : 0);   // Init rotation to clockwise (M3)
+    OUT_WRITE(SPINDLE_DIR_PIN, SPINDLE_INVERT_DIR ? 255 : 0);         // Init rotation to clockwise (M3)
   #endif
   OUT_WRITE(LASER_ENA_PIN, !DeltaMachineMode::get_laser_active_high()); // Init spindle to off
 
@@ -61,6 +64,7 @@ void SpindleLaser::init() {
   #if ENABLED(HAL_CAN_SET_PWM_FREQ) && defined(SPINDLE_LASER_FREQUENCY)
     set_pwm_frequency(pin_t(SPINDLE_PWM_PIN), SPINDLE_LASER_FREQUENCY);
     set_pwm_frequency(pin_t(LASER_PWM_PIN), SPINDLE_LASER_FREQUENCY);
+    TERN_(MARLIN_DEV_MODE, frequency = SPINDLE_LASER_FREQUENCY);
   #endif
 }
 
@@ -70,9 +74,6 @@ void SpindleLaser::init() {
   // Set the cutter PWM directly to the given ocr value
   //
   void SpindleLaser::set_ocr(const uint8_t ocr) {
-    SERIAL_ECHO_START();
-    SERIAL_ECHOLNPAIR("ocr: ", int(ocr));
-
     if(DeltaMachineMode::isCNC()){
       WRITE(SPINDLE_ENA_PIN, DeltaMachineMode::get_active_high()); // turn spindle on
       analogWrite(pin_t(SPINDLE_PWM_PIN), ocr ^ DeltaMachineMode::get_pwm_off());
@@ -81,66 +82,60 @@ void SpindleLaser::init() {
       analogWrite(pin_t(LASER_PWM_PIN), ocr ^ DeltaMachineMode::get_pwm_off());
     }
   }
-  //
-  // Translate power from the configured value range to a PWM value
-  //
-  uint8_t SpindleLaser::translate_power(const cutter_power_t pwr) {
-      float inv_slope = RECIPROCAL(DeltaMachineMode::get_slope_power()),
-                      min_ocr = (DeltaMachineMode::get_min_power() - (DeltaMachineMode::get_intercept_power())) * inv_slope,  // Minimum allowed
-                      max_ocr = (DeltaMachineMode::get_max_power() - (DeltaMachineMode::get_intercept_power())) * inv_slope;  // Maximum allowed
-      int16_t ocr_val;
 
-           if (pwr <= DeltaMachineMode::get_min_power()) ocr_val = min_ocr;                                 // Use minimum if set below
-      else if (pwr >= DeltaMachineMode::get_max_power()) ocr_val = max_ocr;                                 // Use maximum if set above
-      else ocr_val = (pwr - (DeltaMachineMode::get_intercept_power())) * inv_slope;                         // Use calculated OCR value
-
-      return ocr_val & 0xFF;                                                                                // ...limited to Atmel PWM max
+  void SpindleLaser::ocr_off() {
+    if(DeltaMachineMode::isCNC()){
+      WRITE(SPINDLE_ENA_PIN, !DeltaMachineMode::get_active_high()); // turn spindle on
+      analogWrite(pin_t(SPINDLE_PWM_PIN), DeltaMachineMode::get_pwm_off());
+    } else {
+      WRITE(LASER_ENA_PIN, !DeltaMachineMode::get_active_high()); // turn laser on
+      analogWrite(pin_t(LASER_PWM_PIN), DeltaMachineMode::get_pwm_off());
+    }
   }
-
 #endif
 
 //
 // Set cutter ON state (and PWM) to the given cutter power value
 //
-void SpindleLaser::apply_power(const cutter_power_t inpow) {
-  static cutter_power_t last_power_applied = 0;
-  if (inpow == last_power_applied) return;
-  last_power_applied = inpow;
+void SpindleLaser::apply_power(const uint8_t opwr) {
+  static uint8_t last_power_applied = 0;
+  if (opwr == last_power_applied) return;
+  last_power_applied = opwr;
+  power = opwr;
+  
   #if ENABLED(LASER_PWM) || ENABLED(SPINDLE_PWM)
-    if (enabled())
-      set_ocr(translate_power(inpow));
-    else {                                                                                      // Convert RPM to PWM duty cycle
-      if(DeltaMachineMode::isCNC()){
-        WRITE(SPINDLE_ENA_PIN, !DeltaMachineMode::get_active_high());                           // Turn spindle off
-        analogWrite(pin_t(SPINDLE_PWM_PIN), DeltaMachineMode::get_pwm_off());                   // Only write low byte
-      } else {
-        WRITE(LASER_ENA_PIN, !DeltaMachineMode::get_active_high());                             // Turn laser off
-        analogWrite(pin_t(LASER_PWM_PIN), DeltaMachineMode::get_pwm_off());                     // Only write low byte
-      }
+    if (cutter.unitPower == 0 && (DeltaMachineMode::isCNC() ? SPINDLE_CUTTER_UNIT_IS(RPM) : LASER_CUTTER_UNIT_IS(RPM))) {
+      ocr_off();
+      isReady = false;
+    }
+    else if (enabled() || ENABLED(CUTTER_POWER_RELATIVE)) {
+      set_ocr(power);
+      isReady = true;
+    }
+    else {
+      ocr_off();
+      isReady = false;
     }
   #else
     if(DeltaMachineMode::isCNC()){
-      WRITE(SPINDLE_ENA_PIN, (DeltaMachineMode::get_active_high()) ? enabled() : !enabled());
+      WRITE(SPINDLE_ENA_PIN, enabled() == DeltaMachineMode::get_active_high());
     } else {
-      WRITE(LASER_ENA_PIN, (DeltaMachineMode::get_active_high()) ? enabled() : !enabled());
+      WRITE(LASER_ENA_PIN, enabled() == DeltaMachineMode::get_active_high());
     }
+    isReady = true;
   #endif
 }
 
 #if ENABLED(SPINDLE_CHANGE_DIR)
-
   //
   // Set the spindle direction and apply immediately
   // Stop on direction change if SPINDLE_STOP_ON_DIR_CHANGE is enabled
   //
   void SpindleLaser::set_direction(const bool reverse) {
     const bool dir_state = (reverse == SPINDLE_INVERT_DIR); // Forward (M3) HIGH when not inverted
-    #if ENABLED(SPINDLE_STOP_ON_DIR_CHANGE)
-      if (enabled() && READ(SPINDLE_DIR_PIN) != dir_state) disable();
-    #endif
+    if (TERN0(SPINDLE_STOP_ON_DIR_CHANGE, enabled()) && READ(SPINDLE_DIR_PIN) != dir_state) disable();
     WRITE(SPINDLE_DIR_PIN, dir_state);
   }
-
 #endif
 
 #endif // HAS_CUTTER

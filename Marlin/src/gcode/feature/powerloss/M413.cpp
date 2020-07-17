@@ -25,7 +25,7 @@
 #if ENABLED(POWER_LOSS_RECOVERY)
 
 #include "../../gcode.h"
-#include "../../../feature/power_loss_recovery.h"
+#include "../../../feature/powerloss.h"
 #include "../../../module/motion.h"
 #include "../../../lcd/ultralcd.h"
 
@@ -50,6 +50,9 @@ void GcodeSuite::M413() {
     if (parser.seen("RL")) recovery.load();
     if (parser.seen('W')) recovery.save(true);
     if (parser.seen('P')) recovery.purge();
+    #if PIN_EXISTS(POWER_LOSS)
+      if (parser.seen('O')) recovery._outage();
+    #endif
     if (parser.seen('E')) serialprintPGM(recovery.exists() ? PSTR("PLR Exists\n") : PSTR("No PLR\n"));
     if (parser.seen('V')) serialprintPGM(recovery.valid() ? PSTR("Valid\n") : PSTR("Invalid\n"));
   #endif

@@ -52,6 +52,7 @@ public:
   static uint8_t get_pwm_off();
 
   static boolean isCNC();
+  static boolean isLaser();
 
   static void set_spindle_min_power(uint16_t power);
   static void set_laser_min_power(uint16_t power);
