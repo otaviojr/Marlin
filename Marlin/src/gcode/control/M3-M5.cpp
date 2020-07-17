@@ -86,9 +86,9 @@ void GcodeSuite::M3_M4(const bool is_M4) {
   auto get_s_power = [] {
     if (parser.seenval('S')) {
       const float spwr = parser.value_float();
-      cutter.unitPower = TERN(DeltaMachineMode::get_pwm_pin(),
-                              cutter.power_to_range(cutter_power_t(round(spwr))),
-                              spwr > 0 ? 255 : 0);
+      cutter.unitPower = TERN(SPINDLE_PWM || LASER_PWM,
+                            cutter.power_to_range(cutter_power_t(round(spwr))),
+                            spwr > 0 ? 255 : 0);
     }
     else
       cutter.unitPower = cutter.cpwr_to_upwr(DeltaMachineMode::get_startup_power());

@@ -42,7 +42,6 @@
 #ifndef SPEED_POWER_INTERCEPT
   #define SPEED_POWER_INTERCEPT 0
 #endif
-#define SPEED_POWER_FLOOR TERN(CUTTER_POWER_RELATIVE, DeltaMachineMode::get_min_power(), 0)
 
 // #define _MAP(N,S1,S2,D1,D2) ((N)*_MAX((D2)-(D1),0)/_MAX((S2)-(S1),1)+(D1))
 
@@ -53,7 +52,15 @@ public:
 
   // cpower = configured values (ie SPEED_POWER_MAX)
   static const inline uint8_t cpwr_to_pct(const cutter_cpower_t cpwr) { // configured value to pct
-    return unitPower ? round(100 * (cpwr - SPEED_POWER_FLOOR) / (DeltaMachineMode::get_max_power() - SPEED_POWER_FLOOR)) : 0;
+    cutter_cpower_t min_power = (
+      #ifdef CUTTER_POWER_RELATIVE 
+        0 
+      #else
+        DeltaMachineMode::get_min_power()
+      #endif
+    );
+
+    return unitPower ? round(100.0 * (cpwr - min_power) / (DeltaMachineMode::get_max_power() - min_power)*1.0) : 0;
   }
 
   // Convert a configured value (cpower)(ie SPEED_POWER_STARTUP) to unit power (upwr, upower),
@@ -195,7 +202,7 @@ public:
   #endif // SPINDLE_LASER_PWM
 
   static inline void set_enabled(const bool enable) {
-    set_power(enable ? TERN(DeltaMachineMode::isLaser(), (power ?: (unitPower ? upower_to_ocr(cpwr_to_upwr(DeltaMachineMode::get_startup_power())) : 0)), 255) : 0);
+    set_power(enable ? TERN(LASER_PWM || SPINDLE_PWM, (power ?: (unitPower ? upower_to_ocr(cpwr_to_upwr(DeltaMachineMode::get_startup_power())) : 0)), 255) : 0);
   }
 
   // Wait for spindle to spin up or spin down
@@ -221,7 +228,7 @@ public:
 
     static inline void enable_with_dir(const bool reverse) {
       isReady = true;
-      const uint8_t ocr = TERN(DeltaMachineMode::get_pwm_pin(), upower_to_ocr(menuPower), 255);
+      const uint8_t ocr = TERN(LASER_PWM || SPINDLE_PWM, upower_to_ocr(menuPower), 255);
       if (menuPower)
         power = ocr;
       else
@@ -265,7 +272,7 @@ public:
         isReady = false;
         unitPower = menuPower = 0;
         planner.laser_inline.status.isPlanned = false;
-        TERN(DeltaMachineMode::get_pwm_pin(), inline_ocr_power, inline_power)(0);
+        TERN(LASER_PWM || SPINDLE_PWM, inline_ocr_power, inline_power)(0);
       }
     }
 

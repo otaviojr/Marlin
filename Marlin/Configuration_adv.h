@@ -1836,7 +1836,7 @@
 #elif ENABLED(SDSUPPORT)
   #define BLOCK_BUFFER_SIZE 16
 #else
-  #define BLOCK_BUFFER_SIZE 64 // maximize block buffer
+  #define BLOCK_BUFFER_SIZE 32 // maximize block buffer
 #endif
 
 // @section serial
@@ -2937,7 +2937,7 @@
       /**
        * Include laser power in G0/G1/G2/G3/G5 commands with the 'S' parameter
        */
-      //#define LASER_MOVE_POWER
+      #define LASER_MOVE_POWER
 
       #if ENABLED(LASER_MOVE_POWER)
         // Turn off the laser on G0 moves with no power parameter.
@@ -2962,7 +2962,7 @@
        * The laser might do some weird things, so only enable this
        * feature if you understand the implications.
        */
-      //#define LASER_POWER_INLINE_CONTINUOUS
+      #define LASER_POWER_INLINE_CONTINUOUS
 
     #else
 

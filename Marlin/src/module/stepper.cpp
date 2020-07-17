@@ -136,10 +136,6 @@ Stepper stepper; // Singleton
   #include "../feature/spindle_laser.h"
 #endif
 
-#if HAS_CUTTER
-  #include "../feature/spindle_laser.h"
-#endif
-
 // public:
 
 #if EITHER(HAS_EXTRA_ENDSTOPS, Z_STEPPER_AUTO_ALIGN)
@@ -2188,7 +2184,7 @@ uint32_t Stepper::block_phase_isr() {
           }
         #else
           if (stat.isPlanned) {                        // Planner controls the laser
-            #if ENABLED(SPINDLE_LASER_PWM)
+            #if ENABLED(LASER_PWM) || ENABLED(SPINDLE_PWM)
               cutter.set_ocr_power(
                 stat.isEnabled ? current_block->laser.power : 0 // ON with power or OFF
               );
@@ -2236,7 +2232,7 @@ uint32_t Stepper::block_phase_isr() {
         // This should mean ending file with 'M5 I' will stop the laser; thus the inline flag isn't needed
         const power_status_t stat = planner.laser_inline.status;
         if (stat.isPlanned) {             // Planner controls the laser
-          #if ENABLED(SPINDLE_LASER_PWM)
+          #if ENABLED(LASER_PWM) | ENABLED(SPINDLE_PWM)
             cutter.set_ocr_power(
               stat.isEnabled ? planner.laser_inline.power : 0 // ON with power or OFF
             );
