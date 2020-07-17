@@ -55,6 +55,17 @@
   #include "../feature/spindle_laser_types.h"
 #endif
 
+#if ENABLED(JD_HANDLE_SMALL_SEGMENTS)
+  // Enable this option for perfect accuracy but maximum
+  // computation. Should be fine on ARM processors.
+  //#define JD_USE_MATH_ACOS
+
+  // Disable this option to save 120 bytes of PROGMEM,
+  // but incur increased computation and a reduction
+  // in accuracy.
+  #define JD_USE_LOOKUP_TABLE
+#endif
+
 // Feedrate for manual moves
 #ifdef MANUAL_FEEDRATE
   constexpr xyze_feedrate_t _mf = MANUAL_FEEDRATE,

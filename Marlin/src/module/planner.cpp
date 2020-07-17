@@ -2395,17 +2395,94 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
                     sin_theta_d2 = SQRT(0.5f * (1.0f - junction_cos_theta)); // Trig half angle identity. Always positive.
 
         vmax_junction_sqr = (junction_acceleration * junction_deviation_mm * sin_theta_d2) / (1.0f - sin_theta_d2);
-        if (block->millimeters < 1) {
 
-          // Fast acos approximation, minus the error bar to be safe
-          const float junction_theta = (RADIANS(-40) * sq(junction_cos_theta) - RADIANS(50)) * junction_cos_theta + RADIANS(90) - 0.18f;
+        #if ENABLED(JD_HANDLE_SMALL_SEGMENTS)
 
-          // If angle is greater than 135 degrees (octagon), find speed for approximate arc
-          if (junction_theta > RADIANS(135)) {
-            const float limit_sqr = block->millimeters / (RADIANS(180) - junction_theta) * junction_acceleration;
+          // For small moves with >135° junction (octagon) find speed for approximate arc
+          if (block->millimeters < 1 && junction_cos_theta < -0.7071067812f) {
+
+            #if ENABLED(JD_USE_MATH_ACOS)
+
+              #error "TODO: Inline maths with the MCU / FPU."
+
+            #elif ENABLED(JD_USE_LOOKUP_TABLE)
+
+              // Fast acos approximation (max. error +-0.01 rads)
+              // Based on LUT table and linear interpolation
+
+              /**
+               *  // Generate the JD Lookup Table
+               *  constexpr float c = 1.00751495f; // Correction factor to center error around 0
+               *  for (int i = 0; i < jd_lut_count - 1; ++i) {
+               *    const float x0 = (sq(i) - 1) / sq(i),
+               *                y0 = acos(x0) * (i == 0 ? 1 : c),
+               *                x1 = i < jd_lut_count - 1 ?  0.5 * x0 + 0.5 : 0.999999f,
+               *                y1 = acos(x1) * (i < jd_lut_count - 1 ? c : 1);
+               *    jd_lut_k[i] = (y0 - y1) / (x0 - x1);
+               *    jd_lut_b[i] = (y1 * x0 - y0 * x1) / (x0 - x1);
+               *  }
+               *
+               *  // Compute correction factor (Set c to 1.0f first!)
+               *  float min = INFINITY, max = -min;
+               *  for (float t = 0; t <= 1; t += 0.0003f) {
+               *    const float e = acos(t) / approx(t);
+               *    if (isfinite(e)) {
+               *      if (e < min) min = e;
+               *      if (e > max) max = e;
+               *    }
+               *  }
+               *  fprintf(stderr, "%.9gf, ", (min + max) / 2);
+               */
+              static constexpr int16_t  jd_lut_count = 16;
+              static constexpr uint16_t jd_lut_tll   = _BV(jd_lut_count - 1);
+              static constexpr int16_t  jd_lut_tll0  = __builtin_clz(jd_lut_tll) + 1; // i.e., 16 - jd_lut_count + 1
+              static constexpr float jd_lut_k[jd_lut_count] PROGMEM = {
+                -1.03145837f, -1.30760646f, -1.75205851f, -2.41705704f,
+                -3.37769222f, -4.74888992f, -6.69649887f, -9.45661736f,
+                -13.3640480f, -18.8928222f, -26.7136841f, -37.7754593f,
+                -53.4201813f, -75.5458374f, -106.836761f, -218.532821f };
+              static constexpr float jd_lut_b[jd_lut_count] PROGMEM = {
+                 1.57079637f,  1.70887053f,  2.04220939f,  2.62408352f,
+                 3.52467871f,  4.85302639f,  6.77020454f,  9.50875854f,
+                 13.4009285f,  18.9188995f,  26.7321243f,  37.7885055f,
+                 53.4293975f,  75.5523529f,  106.841369f,  218.534011f };
+
+              const float neg = junction_cos_theta < 0 ? -1 : 1,
+                          t = neg * junction_cos_theta;
+
+              const int16_t idx = (t < 0.00000003f) ? 0 : __builtin_clz(uint16_t((1.0f - t) * jd_lut_tll)) - jd_lut_tll0;
+
+              float junction_theta = t * pgm_read_float(&jd_lut_k[idx]) + pgm_read_float(&jd_lut_b[idx]);
+              if (neg > 0) junction_theta = RADIANS(180) - junction_theta; // acos(-t)
+
+            #else
+
+              // Fast acos(-t) approximation (max. error +-0.033rad = 1.89°)
+              // Based on MinMax polynomial published by W. Randolph Franklin, see
+              // https://wrf.ecse.rpi.edu/Research/Short_Notes/arcsin/onlyelem.html
+              //  acos( t) = pi / 2 - asin(x)
+              //  acos(-t) = pi - acos(t) ... pi / 2 + asin(x)
+
+              const float neg = junction_cos_theta < 0 ? -1 : 1,
+                          t = neg * junction_cos_theta,
+                          asinx =       0.032843707f
+                                + t * (-1.451838349f
+                                + t * ( 29.66153956f
+                                + t * (-131.1123477f
+                                + t * ( 262.8130562f
+                                + t * (-242.7199627f
+                                + t * ( 84.31466202f ) ))))),
+                          junction_theta = RADIANS(90) + neg * asinx; // acos(-t)
+
+              // NOTE: junction_theta bottoms out at 0.033 which avoids divide by 0.
+
+            #endif
+
+            const float limit_sqr = (block->millimeters * junction_acceleration) / junction_theta;
             NOMORE(vmax_junction_sqr, limit_sqr);
           }
-        }
+
+        #endif // JD_HANDLE_SMALL_SEGMENTS
       }
 
       // Get the lowest speed
