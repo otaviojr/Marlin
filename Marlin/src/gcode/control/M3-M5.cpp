@@ -86,12 +86,12 @@ void GcodeSuite::M3_M4(const bool is_M4) {
   auto get_s_power = [] {
     if (parser.seenval('S')) {
       const float spwr = parser.value_float();
-      cutter.unitPower = TERN(SPINDLE_LASER_PWM,
+      cutter.unitPower = TERN(DeltaMachineMode::get_pwm_pin(),
                               cutter.power_to_range(cutter_power_t(round(spwr))),
                               spwr > 0 ? 255 : 0);
     }
     else
-      cutter.unitPower = cutter.cpwr_to_upwr(SPEED_POWER_STARTUP);
+      cutter.unitPower = cutter.cpwr_to_upwr(DeltaMachineMode::get_startup_power());
     return cutter.unitPower;
   };
 

@@ -160,7 +160,7 @@ public:
     static inline cutter_power_t power_to_range(const cutter_power_t pwr, const uint8_t pwrUnit) {
       if (pwr <= 0) return 0;
 
-      constexpr float
+      float
         min_pct = round(TERN(CUTTER_POWER_RELATIVE, 0, (100 * float(DeltaMachineMode::get_min_power()) / TERN(DeltaMachineMode::isCNC(), float(DeltaMachineMode::get_max_power()), 100)))),
         max_pct = round(float(DeltaMachineMode::get_max_power()));
 
