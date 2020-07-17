@@ -100,7 +100,7 @@ void GcodeSuite::M3_M4(const bool is_M4) {
       if (parser.seen('I') == DISABLED(LASER_POWER_INLINE_INVERT)) {
         // Laser power in inline mode
         cutter.inline_direction(is_M4); // Should always be unused
-        #if ENABLED(LASER_PWM)
+        #if ENABLED(LASER_PWM) || ENABLED(SPINDLE_PWM)
           if (parser.seen('O')) {
             cutter.unitPower = cutter.power_to_range(parser.value_byte(), 0);
             cutter.inline_ocr_power(cutter.unitPower); // The OCR is a value from 0 to 255 (uint8_t)

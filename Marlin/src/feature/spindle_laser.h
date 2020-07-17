@@ -282,7 +282,7 @@ public:
       #if ENABLED(LASER_PWM) || ENABLED(SPINDLE_PWM)
 
         if(DeltaMachineMode::isCNC()){
-          #if ENABLED(SPEED_POWER_RELATIVE) && !SPINDLE_CUTTER_UNIT_IS(RPM) // relative mode does not turn laser off at 0, except for RPM
+          #if ENABLED(CUTTER_POWER_RELATIVE) && !SPINDLE_CUTTER_UNIT_IS(RPM) // relative mode does not turn laser off at 0, except for RPM
             planner.laser_inline.status.isEnabled = true;
             planner.laser_inline.power = upower_to_ocr(upwr);
             isReady = true;
@@ -290,7 +290,7 @@ public:
             inline_ocr_power(upower_to_ocr(upwr));
           #endif
         } else {
-          #if ENABLED(SPEED_POWER_RELATIVE) && !LASER_CUTTER_UNIT_IS(RPM) // relative mode does not turn laser off at 0, except for RPM
+          #if ENABLED(CUTTER_POWER_RELATIVE) && !LASER_CUTTER_UNIT_IS(RPM) // relative mode does not turn laser off at 0, except for RPM
             planner.laser_inline.status.isEnabled = true;
             planner.laser_inline.power = upower_to_ocr(upwr);
             isReady = true;

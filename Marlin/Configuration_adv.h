@@ -2864,7 +2864,7 @@
    * instead of normal range (0 to SPEED_POWER_MAX).
    * Best used with (e.g.) SuperPID router controller: S0 = 5,000 RPM and S255 = 30,000 RPM
    */
-  //#define CUTTER_POWER_RELATIVE              // Set speed proportional to [SPEED_POWER_MIN...SPEED_POWER_MAX]
+  #define CUTTER_POWER_RELATIVE              // Set speed proportional to [SPEED_POWER_MIN...SPEED_POWER_MAX]
 
   #if ENABLED(SPINDLE_FEATURE)
     #define SPINDLE_CHANGE_DIR                  // Enable if your spindle controller can change spindle direction
@@ -3146,7 +3146,7 @@
 // Enable and set a (default) feedrate for all G0 moves
 //#define G0_FEEDRATE 3000 // (mm/m)
 #ifdef G0_FEEDRATE
-  //#define VARIABLE_G0_FEEDRATE // The G0 feedrate is set by F in G0 motion mode
+  #define VARIABLE_G0_FEEDRATE // The G0 feedrate is set by F in G0 motion mode
 #endif
 
 /**
