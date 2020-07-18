@@ -280,7 +280,6 @@ public:
     static void inline_power(const cutter_power_t upwr) {
       unitPower = menuPower = upwr;
       #if ENABLED(LASER_PWM) || ENABLED(SPINDLE_PWM)
-
         if(DeltaMachineMode::isCNC()){
           #if ENABLED(CUTTER_POWER_RELATIVE) && !SPINDLE_CUTTER_UNIT_IS(RPM) // relative mode does not turn laser off at 0, except for RPM
             planner.laser_inline.status.isEnabled = true;

@@ -2917,9 +2917,9 @@ static_assert(   _ARR_TEST(3,0) && _ARR_TEST(3,1) && _ARR_TEST(3,2)
       //#endif
     #endif
   #else
-    #if SPINDLE_LASER_POWERUP_DELAY < 1
+    #if LASER_POWERUP_DELAY < 1 || SPINDLE_POWERUP_DELAY < 1
       #error "SPINDLE_LASER_POWERUP_DELAY must be greater than 0."
-    #elif SPINDLE_LASER_POWERDOWN_DELAY < 1
+    #elif LASER_POWERDOWN_DELAY < 1 || SPINDLE_POWERDOWN_DELAY < 1
       #error "SPINDLE_LASER_POWERDOWN_DELAY must be greater than 0."
     #elif ENABLED(LASER_MOVE_POWER)
       #error "LASER_MOVE_POWER requires LASER_POWER_INLINE"

@@ -71,6 +71,10 @@
   #define IS_PAGE(B) TEST(B->flag, BLOCK_BIT_IS_PAGE)
 #else
   #define IS_PAGE(B) false
+  // Disable this option to save 120 bytes of PROGMEM,
+  // but incur increased computation and a reduction
+  // in accuracy.
+  #define JD_USE_LOOKUP_TABLE
 #endif
 
 // Feedrate for manual moves
@@ -97,7 +101,6 @@ enum BlockFlagBit : char {
 
   // Sync the stepper counts from the block
   BLOCK_BIT_SYNC_POSITION
-
   // Direct stepping page
   #if ENABLED(DIRECT_STEPPING)
     , BLOCK_BIT_IS_PAGE
