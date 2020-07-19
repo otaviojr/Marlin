@@ -957,7 +957,8 @@ class Planner {
 
     #if HAS_JUNCTION_DEVIATION
 
-      FORCE_INLINE static void normalize_junction_vector(xyze_float_t &vector) {
+      //Changed By OTA
+      /*FORCE_INLINE static void normalize_junction_vector(xyze_float_t &vector) {
         float magnitude_sq = 0;
         LOOP_XYZE(idx) if (vector[idx]) magnitude_sq += sq(vector[idx]);
         vector *= RSQRT(magnitude_sq);
@@ -966,6 +967,23 @@ class Planner {
       FORCE_INLINE static float limit_value_by_axis_maximum(const float &max_value, xyze_float_t &unit_vec) {
         float limit_value = max_value;
         LOOP_XYZE(idx) {
+          if (unit_vec[idx]) {
+            if (limit_value * ABS(unit_vec[idx]) > settings.max_acceleration_mm_per_s2[idx])
+              limit_value = ABS(settings.max_acceleration_mm_per_s2[idx] / unit_vec[idx]);
+          }
+        }
+        return limit_value;
+      }*/
+      
+      FORCE_INLINE static void normalize_junction_vector(xyze_float_t &vector) {
+        float magnitude_sq = 0;
+        LOOP_XYZ(idx) if (vector[idx]) magnitude_sq += sq(vector[idx]);
+        vector *= RSQRT(magnitude_sq);
+      }
+
+      FORCE_INLINE static float limit_value_by_axis_maximum(const float &max_value, xyze_float_t &unit_vec) {
+        float limit_value = max_value;
+        LOOP_XYZ(idx) {
           if (unit_vec[idx]) {
             if (limit_value * ABS(unit_vec[idx]) > settings.max_acceleration_mm_per_s2[idx])
               limit_value = ABS(settings.max_acceleration_mm_per_s2[idx] / unit_vec[idx]);

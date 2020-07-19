@@ -121,7 +121,7 @@
  *
  * :[2400, 9600, 19200, 38400, 57600, 115200, 250000, 500000, 1000000]
  */
-#define BAUDRATE 250000
+#define BAUDRATE 500000
 
 // Enable the Bluetooth serial interface on AT90USB devices
 //#define BLUETOOTH
@@ -749,7 +749,7 @@
  */
 //
 //#define DEFAULT_AXIS_STEPS_PER_UNIT   { 80, 80, 80, 80 }
-#define DEFAULT_AXIS_STEPS_PER_UNIT   { 320, 320, 320, 320 }
+#define DEFAULT_AXIS_STEPS_PER_UNIT   { 160, 160, 160, 80 }
 
 /**
  * Default Max Feed Rate (mm/s)
@@ -769,7 +769,7 @@
  * Override with M201
  *                                      X, Y, Z, E0 [, E1[, E2...]]
  */
-#define DEFAULT_MAX_ACCELERATION      { 1500, 1500, 500, 10000 }
+#define DEFAULT_MAX_ACCELERATION      { 3000, 3000, 3000, 10000 }
 
 //#define LIMITED_MAX_ACCEL_EDITING     // Limit edit via M201 or LCD to DEFAULT_MAX_ACCELERATION * 2
 #if ENABLED(LIMITED_MAX_ACCEL_EDITING)
@@ -820,8 +820,8 @@
  *   http://blog.kyneticcnc.com/2018/10/computing-junction-deviation-for-marlin.html
  */
 #if DISABLED(CLASSIC_JERK)
-  #define JUNCTION_DEVIATION_MM 0.013 // (mm) Distance from real junction edge
-  #define JD_HANDLE_SMALL_SEGMENTS    // Use curvature estimation instead of just the junction angle
+  #define JUNCTION_DEVIATION_MM 0.03   // (mm) Distance from real junction edge
+  #define JD_HANDLE_SMALL_SEGMENTS     // Use curvature estimation instead of just the junction angle
 #endif
 
 /**
